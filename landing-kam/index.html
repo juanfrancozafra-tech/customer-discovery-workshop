@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Radar de cuentas · Solución hipotética V2</title>
+<meta name="description" content="Solución hipotética V2, ficticia: landing page de un informe semanal de insights por cuenta para Kams farmacéuticos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    color-scheme:dark;
+    --bg:#0F1420; --surface:#1A2233; --inset:#131a28; --surface-2:#252e42;
+    --text:#F2F4F8; --text-2:#c9cfda; --muted:#9AA3B2;
+    --rule:rgba(255,255,255,.07); --rule-strong:rgba(255,255,255,.14);
+    --yellow:#FFC53D; --on-yellow:#412402; --teal:#2DD4BF; --teal-soft:rgba(45,212,191,.12);
+    --crit:#f0837b;
+    --sans:"Inter",-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  p{margin:0}
+  button,input,select{font:inherit;color:inherit}
+  a{color:var(--teal)}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:4px}
+  .shell{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  .barra{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;padding:20px 0}
+  .marca{font-weight:700;font-size:16px;letter-spacing:-.01em;white-space:nowrap}
+  .marca span{color:var(--teal)}
+  .ficticio{white-space:nowrap;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border:1px solid var(--rule-strong);border-radius:999px;padding:3px 9px}
+
+  /* hero */
+  .hero{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:40px 0 72px}
+  .eyebrow{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin-bottom:16px}
+  h1{font-size:clamp(34px,5vw,54px);line-height:1.08;font-weight:700;letter-spacing:-.025em;margin:0 0 20px;text-wrap:balance}
+  h1 .hl{color:var(--yellow)}
+  .sub{font-size:18.5px;color:var(--text-2);max-width:52ch;margin-bottom:28px}
+  .btn{appearance:none;display:inline-flex;align-items:center;gap:10px;background:var(--yellow);color:var(--on-yellow);font-weight:600;font-size:16px;padding:14px 22px;border-radius:8px;border:0;cursor:pointer;text-decoration:none}
+  .btn:hover{filter:brightness(.95)}
+  .nota-cta{font-size:14px;color:var(--muted);margin-top:12px}
+  .ilus{width:100%;height:auto;display:block}
+
+  /* secciones */
+  .sec{padding:72px 0;border-top:1px solid var(--rule-strong)}
+  .sec-n{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--teal)}
+  h2{font-size:clamp(28px,3.6vw,38px);line-height:1.15;font-weight:700;letter-spacing:-.02em;margin:6px 0 32px;max-width:24ch;text-wrap:balance}
+
+  .benef{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .b{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:24px}
+  .b svg{width:28px;height:28px;color:var(--teal);margin-bottom:16px}
+  .b h3{font-size:20px;line-height:1.3;font-weight:600;margin:0 0 8px}
+  .b p{font-size:15.5px;color:var(--text-2)}
+
+  .faq{max-width:760px;display:flex;flex-direction:column}
+  .faq details{border-bottom:1px solid var(--rule-strong)}
+  .faq details:first-child{border-top:1px solid var(--rule-strong)}
+  .faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;font-size:17.5px;font-weight:600}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"";flex:none;width:9px;height:9px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .15s;margin-right:4px}
+  .faq details[open] summary::after{transform:rotate(-135deg)}
+  .faq details p{padding:0 0 20px;color:var(--text-2);font-size:16px;max-width:62ch}
+
+  /* CTA */
+  .cta{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+  .cta h2{margin-bottom:12px}
+  .cta .sub{margin-bottom:0}
+  form{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:24px;display:grid;gap:16px}
+  label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+  input,select{width:100%;font-size:16px;background:var(--inset);border:1px solid var(--rule-strong);border-radius:8px;padding:11px 12px;color:var(--text)}
+  select{appearance:none;-webkit-appearance:none;background:var(--inset) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5l3 3 3-3' fill='none' stroke='%239AA3B2' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center;padding-right:32px}
+  select option{background:var(--surface)}
+  input::placeholder{color:var(--muted);opacity:.8}
+  input:focus,select:focus{outline:none;border-color:var(--teal)}
+  .err{font-size:13.5px;color:var(--crit);margin-top:6px}
+  .err:empty{display:none}
+  form .btn{justify-content:center;width:100%}
+  .priv{font-size:13px;color:var(--muted)}
+  .gracias{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:28px 24px}
+  .gracias svg{width:32px;height:32px;color:var(--teal);margin-bottom:12px}
+  .gracias h3{font-size:22px;margin:0 0 8px}
+  .gracias p{color:var(--text-2)}
+
+  footer{border-top:1px solid var(--rule-strong);padding:24px 0 40px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+  footer .fn{font-weight:600;font-size:14px;color:var(--text)}
+  footer a{text-decoration:none}
+  footer a:hover{text-decoration:underline}
+
+  @media (max-width:820px){
+    .hero{grid-template-columns:1fr;gap:28px;padding:24px 0 56px}
+    .ilus{max-width:420px;margin:0 auto}
+    .benef{grid-template-columns:1fr}
+    .cta{grid-template-columns:1fr;gap:24px}
+    .sec{padding:56px 0}
+  }
+  @media (max-width:480px){ .shell{padding:0 16px} .sub{font-size:17px} }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="barra">
+    <span class="marca">Radar <span>de cuentas</span></span>
+    <span class="ficticio">Solución hipotética V2 · datos ficticios</span>
+  </div>
+
+  <section class="hero" aria-labelledby="h1">
+    <div>
+      <p class="eyebrow">Para Kams de cuentas institucionales</p>
+      <h1 id="h1">Cada lunes, en 5 minutos, sepa qué cambió en sus cuentas y <span class="hl">qué hacer al respecto</span></h1>
+      <p class="sub">Un informe semanal con lo que pasó en sus hospitales, clínicas y aseguradoras: licitaciones, pagos, cambios de personas y regulación. Con una acción concreta para cada cosa.</p>
+      <a class="btn" href="#piloto" id="cta-hero">Quiero estar en el piloto
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <p class="nota-cta">Piloto gratuito de 8 semanas. Sin instalar nada.</p>
+    </div>
+
+    <svg class="ilus" viewBox="0 0 480 440" role="img" aria-labelledby="ilus-t">
+      <title id="ilus-t">Un Kam sentado en una sala de espera revisa en su celular el informe del lunes y sonríe con alivio</title>
+      <!-- fondo -->
+      <circle cx="230" cy="250" r="185" fill="#1A2233"/>
+      <!-- ventana y luz de la mañana -->
+      <rect x="70" y="95" width="120" height="96" rx="10" fill="#252e42"/>
+      <path d="M130 95v96M70 143h120" stroke="#1A2233" stroke-width="5"/>
+      <circle cx="165" cy="120" r="12" fill="#9AA3B2" opacity=".45"/>
+      <!-- banca -->
+      <rect x="92" y="338" width="250" height="20" rx="8" fill="#2f3a52"/>
+      <rect x="108" y="356" width="10" height="44" rx="4" fill="#2f3a52"/>
+      <rect x="316" y="356" width="10" height="44" rx="4" fill="#2f3a52"/>
+      <!-- maletín -->
+      <rect x="98" y="292" width="64" height="48" rx="7" fill="#3a4660"/>
+      <path d="M117 292v-9a5 5 0 0 1 5-5h16a5 5 0 0 1 5 5v9" fill="none" stroke="#3a4660" stroke-width="5"/>
+      <!-- café -->
+      <rect x="344" y="316" width="28" height="24" rx="5" fill="#F2F4F8"/>
+      <path d="M372 322h5a6 6 0 0 1 0 12h-5" fill="none" stroke="#F2F4F8" stroke-width="4"/>
+      <path d="M352 306c0-6 6-6 6-12M362 306c0-6 6-6 6-12" stroke="#9AA3B2" stroke-width="2.5" stroke-linecap="round" fill="none" opacity=".7"/>
+      <!-- piernas -->
+      <path d="M196 340 L180 402" stroke="#2b3550" stroke-width="30" stroke-linecap="round"/>
+      <path d="M250 340 L262 402" stroke="#2b3550" stroke-width="30" stroke-linecap="round"/>
+      <ellipse cx="175" cy="408" rx="22" ry="9" fill="#0F1420"/>
+      <ellipse cx="268" cy="408" rx="22" ry="9" fill="#0F1420"/>
+      <!-- torso -->
+      <path d="M168 345 C164 280 176 238 222 232 C268 238 282 280 278 345 Z" fill="#33507f"/>
+      <path d="M204 236 L222 268 L240 236" fill="#F2F4F8"/><path d="M219 246 L222 278 L225 246 Z" fill="#2DD4BF"/>
+      <!-- cuello y cabeza -->
+      <rect x="212" y="206" width="20" height="30" rx="8" fill="#C98F6B"/>
+      <circle cx="222" cy="182" r="38" fill="#C98F6B"/>
+      <path d="M184 178 C182 146 206 134 226 136 C250 138 264 154 260 176 C252 162 236 158 222 160 C206 162 194 168 184 178 Z" fill="#1d1a20"/>
+      <!-- cara feliz mirando abajo -->
+      <path d="M204 186 q6 5 12 0" stroke="#1d1a20" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M230 186 q6 5 12 0" stroke="#1d1a20" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M212 201 q11 9 22 0" stroke="#7a4a33" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <!-- brazos sosteniendo el celular -->
+      <path d="M182 268 C176 300 196 314 214 300" stroke="#2c4570" stroke-width="22" stroke-linecap="round" fill="none"/>
+      <path d="M264 268 C272 300 252 314 234 302" stroke="#2c4570" stroke-width="22" stroke-linecap="round" fill="none"/>
+      <rect x="206" y="270" width="36" height="58" rx="6" fill="#0F1420" transform="rotate(-8 224 299)"/>
+      <rect x="210" y="276" width="28" height="44" rx="3" fill="#252e42" transform="rotate(-8 224 299)"/>
+      <circle cx="212" cy="302" r="9" fill="#C98F6B"/>
+      <circle cx="238" cy="300" r="9" fill="#C98F6B"/>
+      <!-- tarjeta flotante del informe -->
+      <g>
+        <rect x="292" y="58" width="168" height="206" rx="14" fill="#252e42" stroke="rgba(255,255,255,.14)"/>
+        <text x="308" y="86" fill="#9AA3B2" font-family="Inter, sans-serif" font-size="11" font-weight="600" letter-spacing="1">LUNES · 7:30</text>
+        <text x="308" y="108" fill="#F2F4F8" font-family="Inter, sans-serif" font-size="14" font-weight="700">3 cosas esta semana</text>
+        <g>
+          <circle cx="318" cy="136" r="9" fill="#FFC53D"/>
+          <rect x="334" y="129" width="108" height="6" rx="3" fill="#F2F4F8" opacity=".85"/>
+          <rect x="334" y="140" width="78" height="5" rx="2.5" fill="#9AA3B2" opacity=".6"/>
+        </g>
+        <g>
+          <circle cx="318" cy="174" r="9" fill="#2DD4BF"/>
+          <rect x="334" y="167" width="100" height="6" rx="3" fill="#F2F4F8" opacity=".85"/>
+          <rect x="334" y="178" width="86" height="5" rx="2.5" fill="#9AA3B2" opacity=".6"/>
+        </g>
+        <g>
+          <circle cx="318" cy="212" r="9" fill="#2DD4BF"/>
+          <rect x="334" y="205" width="94" height="6" rx="3" fill="#F2F4F8" opacity=".85"/>
+          <rect x="334" y="216" width="70" height="5" rx="2.5" fill="#9AA3B2" opacity=".6"/>
+        </g>
+        <rect x="308" y="236" width="70" height="14" rx="7" fill="rgba(45,212,191,.18)"/>
+        <text x="316" y="246.5" fill="#2DD4BF" font-family="Inter, sans-serif" font-size="9" font-weight="600">QUÉ HACER</text>
+      </g>
+      <path d="M290 220 C276 236 264 250 252 262" stroke="#9AA3B2" stroke-width="2" stroke-dasharray="4 5" fill="none" opacity=".6"/>
+    </svg>
+  </section>
+
+  <section class="sec" aria-labelledby="h-b">
+    <span class="sec-n">Beneficios</span>
+    <h2 id="h-b">Menos tiempo buscando, más tiempo con sus cuentas</h2>
+    <div class="benef">
+      <article class="b">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <h3>Recupere de 4 a 6 horas por semana</h3>
+        <p>Deje de revisar portales, noticias y LinkedIn cuenta por cuenta. Esa revisión la hacemos nosotros.</p>
+      </article>
+      <article class="b">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 8a4 4 0 1 0 4 4"/><path d="M12 12l7-7"/></svg>
+        <h3>Entérese antes que la competencia</h3>
+        <p>Concursos de compra, retrasos de pago y cambios de personas en sus cuentas, apenas aparecen.</p>
+      </article>
+      <article class="b">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>
+        <h3>Reciba acciones, no noticias</h3>
+        <p>Cada alerta dice por qué le importa y qué hacer esa semana, y separa lo comprobado de lo que conviene validar en campo.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-f">
+    <span class="sec-n">Preguntas frecuentes</span>
+    <h2 id="h-f">Lo que suelen preguntar los Kams</h2>
+    <div class="faq">
+      <details>
+        <summary>¿De dónde sale la información?</summary>
+        <p>De fuentes públicas, como portales de compras públicas, el diario oficial, prensa del sector y perfiles profesionales, y de lo que usted nos cuente de sus cuentas. Cada alerta indica su fuente.</p>
+      </details>
+      <details>
+        <summary>¿Cómo distingo un hecho de una inferencia?</summary>
+        <p>Cada alerta viene marcada. Un hecho sale de una fuente verificable. Una inferencia es una lectura de varias señales que conviene confirmar en campo antes de actuar.</p>
+      </details>
+      <details>
+        <summary>¿Necesito instalar algo o pedir permiso a TI?</summary>
+        <p>No. El informe llega a su correo cada lunes y se lee en el celular. No se conecta a los sistemas de su empresa.</p>
+      </details>
+      <details>
+        <summary>¿Cuánto cuesta el piloto?</summary>
+        <p>El piloto es gratuito durante 8 semanas. A cambio, le pediremos 15 minutos cada dos semanas para contarnos qué le sirvió y qué no.</p>
+      </details>
+      <details>
+        <summary>¿Qué pasa con la información de mis cuentas?</summary>
+        <p>Solo la usamos para preparar su informe. No la compartimos con nadie: ni con su empresa ni con otros laboratorios.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="sec" id="piloto" aria-labelledby="h-c">
+    <div class="cta">
+      <div>
+        <span class="sec-n">Piloto</span>
+        <h2 id="h-c">Sea de los primeros Kams en recibir su Radar</h2>
+        <p class="sub">Déjenos sus datos y le escribimos esta semana para preparar su primer informe del lunes.</p>
+      </div>
+      <div>
+        <form id="form" novalidate>
+          <div><label for="f-nombre">Nombre</label><input id="f-nombre" type="text" autocomplete="off" placeholder="Nombre y apellido"><p class="err" id="e-nombre"></p></div>
+          <div><label for="f-correo">Correo de trabajo</label><input id="f-correo" type="email" autocomplete="off" placeholder="nombre@empresa.com"><p class="err" id="e-correo"></p></div>
+          <div><label for="f-empresa">Empresa</label><input id="f-empresa" type="text" autocomplete="off" placeholder="Laboratorio donde trabaja"><p class="err" id="e-empresa"></p></div>
+          <div><label for="f-cuentas">¿Cuántas cuentas maneja?</label>
+            <select id="f-cuentas"><option value="">Elija una opción</option><option>1 a 5</option><option>6 a 10</option><option>11 a 20</option><option>Más de 20</option></select>
+            <p class="err" id="e-cuentas"></p></div>
+          <button class="btn" type="submit">Quiero estar en el piloto</button>
+          <p class="priv">Esta es una página de ejemplo para el taller: lo que escriba no se guarda ni se envía.</p>
+        </form>
+        <div class="gracias" id="gracias" hidden tabindex="-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
+          <h3 id="g-t">Gracias</h3>
+          <p>Le escribiremos esta semana para preparar su primer informe del lunes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Solución hipotética V2 para el taller de Customer Discovery. El producto, las cuentas y las personas son ficticios.</p>
+    <p class="fn">Juan Carlos Franco Zafra</p>
+    <a href="https://www.linkedin.com/in/juancarlosfranco/" target="_blank" rel="noopener">LinkedIn</a>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  $("cta-hero").addEventListener("click", function () { setTimeout(function () { if (!$("form").hidden) $("f-nombre").focus({ preventScroll: true }); }, 450); });
+  var reglas = [
+    ["nombre", function (v) { return v.trim() ? "" : "Escriba su nombre."; }],
+    ["correo", function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? "" : "Escriba un correo válido."; }],
+    ["empresa", function (v) { return v.trim() ? "" : "Escriba su empresa."; }],
+    ["cuentas", function (v) { return v ? "" : "Elija una opción."; }]
+  ];
+  $("form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var primero = null;
+    reglas.forEach(function (r) {
+      var el = $("f-" + r[0]), msg = r[1](el.value);
+      $("e-" + r[0]).textContent = msg;
+      el.setAttribute("aria-invalid", msg ? "true" : "false");
+      if (msg && !primero) primero = el;
+    });
+    if (primero) { primero.focus(); return; }
+    var nombre = $("f-nombre").value.trim().split(/\s+/)[0];
+    $("g-t").textContent = "Gracias, " + nombre;
+    $("form").hidden = true; $("gracias").hidden = false; $("gracias").focus();
+  });
+})();
+</script>
+</body>
+</html>

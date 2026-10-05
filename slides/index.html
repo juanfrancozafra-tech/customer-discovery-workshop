@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Customer Discovery · Juan Carlos Franco Zafra</title>
+<meta name="description" content="Taller de Customer Discovery: comprueba que el problema existe antes de construir la solución.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    color-scheme:dark;
+    --bg:#0F1420; --surface:#1A2233; --inset:#131a28; --surface-2:#252e42;
+    --text:#F2F4F8; --text-2:#c9cfda; --muted:#9AA3B2;
+    --rule:rgba(255,255,255,.07); --rule-strong:rgba(255,255,255,.14);
+    --yellow:#FFC53D; --on-yellow:#412402; --yellow-soft:rgba(255,197,61,.14);
+    --teal:#2DD4BF; --teal-soft:rgba(45,212,191,.13);
+    --sans:"Inter",-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+  p{margin:0}
+  a{color:var(--teal)}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:4px}
+
+  .slide{min-height:100vh;min-height:100svh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:56px max(24px,7vw) 72px;position:relative;border-bottom:1px solid var(--rule)}
+  .in{width:100%;max-width:1120px;margin:0 auto}
+  .label{font-size:clamp(12px,1.1vw,14px);font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--teal);margin-bottom:14px}
+  h1,h2{font-weight:700;letter-spacing:-.025em;margin:0;text-wrap:balance}
+  h1{font-size:clamp(40px,6.4vw,84px);line-height:1.05}
+  h2{font-size:clamp(30px,min(4.2vw,7.2vh),58px);line-height:1.1;max-width:22ch}
+  .hl{color:var(--yellow)}
+  .lead{font-size:clamp(18px,1.8vw,24px);color:var(--text-2);max-width:48ch;margin-top:22px}
+  .pie{position:absolute;left:max(24px,7vw);bottom:28px;font-size:13px;color:var(--muted)}
+  .num{position:absolute;right:max(24px,7vw);bottom:28px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  /* elementos */
+  .grid{display:grid;gap:14px;margin-top:clamp(24px,3.5vh,40px)}
+  .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+  .box{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:clamp(18px,2vw,28px)}
+  .box h3{font-size:clamp(19px,1.7vw,24px);font-weight:600;margin:0 0 8px;line-height:1.25}
+  .box p{font-size:clamp(14px,1.15vw,17px);color:var(--text-2)}
+  .box .k{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin-bottom:10px;display:block}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:36px}
+  .chip{font-size:clamp(15px,1.3vw,19px);padding:10px 16px;border-radius:999px;background:var(--surface);border:1px solid var(--rule-strong);color:var(--text)}
+  .chip.nuevo{border-color:var(--teal);color:var(--teal);background:var(--teal-soft)}
+  .btn{display:inline-flex;align-items:center;gap:10px;margin-top:clamp(20px,3vh,36px);background:var(--yellow);color:var(--on-yellow);font-weight:600;font-size:clamp(16px,1.3vw,19px);padding:14px 24px;border-radius:9px;text-decoration:none}
+  .btn:hover{filter:brightness(.95)}
+  .btn svg{width:16px;height:16px}
+  .quote{font-size:clamp(22px,2.4vw,34px);line-height:1.35;color:var(--text);max-width:34ch;margin-top:32px;font-weight:500}
+  .sub{font-size:clamp(16px,1.4vw,20px);color:var(--muted);margin-top:18px}
+  ul.reglas{list-style:none;padding:0;margin:40px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;max-width:900px}
+  ul.reglas li{display:flex;align-items:center;gap:16px;font-size:clamp(19px,1.8vw,26px);font-weight:500;background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:22px 24px}
+  ul.reglas svg{flex:none;width:30px;height:30px;color:var(--teal)}
+
+  /* frase de visión */
+  .frase{margin-top:24px!important;font-size:clamp(17px,1.7vw,25px);line-height:1.85;color:var(--text-2);margin-top:36px;max-width:60ch}
+  .frase .v{color:var(--text);padding:2px 8px;border-radius:5px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+  .frase .v.h{background:var(--yellow-soft);border-bottom:2px dashed var(--yellow)}
+  .frase .v.e{background:var(--teal-soft);border-bottom:2px solid var(--teal)}
+  .ley{display:flex;gap:22px;flex-wrap:wrap;margin-top:18px;font-size:15px;color:var(--muted)}
+  .ley span{display:inline-flex;align-items:center;gap:8px}
+  .sw{width:24px;height:12px;border-radius:3px;display:inline-block}
+  .sw.h{background:var(--yellow-soft);border-bottom:2px dashed var(--yellow)}
+  .sw.e{background:var(--teal-soft);border-bottom:2px solid var(--teal)}
+
+  /* tabla priorización */
+  .tabla{width:100%;max-width:900px;border-collapse:separate;border-spacing:0;margin-top:22px;font-size:clamp(14px,1.25vw,18px)}
+  .tabla th,.tabla td{padding:9px 14px;border-bottom:1px solid var(--rule-strong);text-align:center}
+  .tabla th{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:500}
+  .tabla td:first-child,.tabla th:first-child{text-align:left}
+  .tabla tr.top td{background:var(--yellow-soft)}
+  .tabla tr.top td:first-child{box-shadow:inset 3px 0 0 var(--yellow)}
+  .tabla td.t{font-weight:700}
+  .tabla tr.top td.t{color:var(--yellow)}
+  .pasos{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:22px;font-size:clamp(15px,1.3vw,19px);color:var(--text-2)}
+  .pasos b{color:var(--text);font-weight:600}
+  .flecha{color:var(--muted)}
+
+  /* hipótesis → evidencias */
+  .he{display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center;margin-top:44px;max-width:980px}
+  .he .box{text-align:left;padding:32px}
+  .he .box h3{font-size:clamp(26px,2.6vw,38px)}
+  .he .box.ev{border-color:var(--teal)}
+  .he svg{width:56px;height:56px;color:var(--muted)}
+
+  /* tipos de experimento */
+  .tipos{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:14px;align-items:stretch;margin-top:44px}
+  .tipos .box{display:flex;flex-direction:column;gap:10px}
+  .tipos .loop{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--teal);margin-top:auto;padding-top:8px}
+  .tipos .loop svg{width:18px;height:18px}
+  .tipos .sep{display:grid;place-items:center;color:var(--muted)}
+  .tipos .sep svg{width:28px;height:28px}
+  .tag{display:inline-block;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:999px;margin-bottom:12px}
+  .tag.hum{background:var(--yellow-soft);color:var(--yellow)}
+  .tag.ia{background:var(--teal-soft);color:var(--teal)}
+  .metrica{margin-top:28px;font-size:clamp(17px,1.5vw,22px);color:var(--text-2)}
+  .metrica b{color:var(--text)}
+
+  /* enlaces de cierre */
+  .enlaces{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:40px;max-width:980px}
+  .enlaces a{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--rule-strong);border-radius:12px;padding:18px 20px;color:var(--text);text-decoration:none;font-size:clamp(16px,1.3vw,19px);font-weight:500}
+  .enlaces a:hover{border-color:var(--teal)}
+  .enlaces a span{color:var(--teal)}
+  .firma{margin-top:44px;font-size:18px}
+  .firma b{display:block;font-size:22px}
+  .firma a{text-decoration:none}
+
+  .centro{text-align:center;align-items:center}
+  .centro .in{display:flex;flex-direction:column;align-items:center}
+  .centro h2{max-width:none}
+  .gigante{font-size:clamp(48px,8vw,112px)!important;line-height:1.05}
+
+  /* navegación */
+  .nav{position:fixed;right:max(16px,2vw);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:10}
+  .nav button{appearance:none;width:36px;height:36px;border-radius:8px;border:1px solid var(--rule-strong);background:rgba(26,34,51,.85);color:var(--text-2);cursor:pointer;display:grid;place-items:center}
+  .nav button:hover{color:var(--text);border-color:var(--muted)}
+  .nav svg{width:16px;height:16px}
+
+  @media (max-width:820px){
+    html{scroll-snap-type:none}
+    .slide{padding:56px 20px 72px}
+    .g3,.g4,.tipos,.enlaces,ul.reglas{grid-template-columns:1fr}
+    .g2{grid-template-columns:1fr}
+    .tipos .sep{transform:rotate(90deg)}
+    .he{grid-template-columns:1fr}
+    .he svg{transform:rotate(90deg);justify-self:center}
+    .nav{display:none}
+    .pie{left:20px}.num{right:20px}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Navegación de slides">
+  <button type="button" id="prev" aria-label="Slide anterior"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/></svg></button>
+  <button type="button" id="next" aria-label="Slide siguiente"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg></button>
+</nav>
+
+<main>
+
+<!-- 1 Portada -->
+<section class="slide" id="s1">
+  <div class="in">
+    <p class="label">Customer Discovery</p>
+    <h1>Comprueba que el problema existe <span class="hl">antes de construir</span> la solución</h1>
+    <p class="lead">Un paso a paso para entender a tus posibles clientes y saber si el problema que quieres resolver merece una solución.</p>
+    <p class="firma"><b>Juan Carlos Franco Zafra</b><a href="https://www.linkedin.com/in/juancarlosfranco/" target="_blank" rel="noopener">LinkedIn</a></p>
+  </div>
+</section>
+
+<!-- 2 Reglas -->
+<section class="slide" id="s2">
+  <div class="in">
+    <p class="label">Reglas de juego</p>
+    <h2>Hoy <span class="hl">aprendemos haciendo</span></h2>
+    <ul class="reglas">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3"/></svg>Cámaras encendidas</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg>Hacemos los ejercicios</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>Preguntas en cualquier momento</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l2 2 4-4"/><rect x="4" y="3" width="16" height="18" rx="2"/></svg>Evaluación al final</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 3 Historia -->
+<section class="slide centro" id="s3">
+  <div class="in">
+    <h2 class="gigante">Una historia <span class="hl">(de terror)</span></h2>
+  </div>
+</section>
+
+<!-- 4 Qué es -->
+<section class="slide" id="s4">
+  <div class="in">
+    <p class="label">Fundamentos · ¿Qué es?</p>
+    <h2>Customer Discovery es comprobar que el problema existe <span class="hl">antes de construir</span></h2>
+    <p class="quote">"Es el proceso de entender a tus posibles clientes y comprobar si el problema que quieres resolver existe, es importante y merece una solución."</p>
+    <p class="sub">El resultado: un conjunto de hipótesis mejor sustentadas.</p>
+  </div>
+</section>
+
+<!-- 5 De dónde sale -->
+<section class="slide" id="s5">
+  <div class="in">
+    <p class="label">Fundamentos · De dónde sale todo esto</p>
+    <h2>Nada de esto es nuevo: <span class="hl">lo consolidé desde la práctica</span></h2>
+    <div class="grid g4">
+      <div class="box"><h3>Customer Development</h3><p>Steve Blank. De aquí viene "Customer Discovery": salir del edificio a hablar con clientes.</p></div>
+      <div class="box"><h3>Lean Startup</h3><p>Construir, medir, aprender: hipótesis que se ponen a prueba con experimentos.</p></div>
+      <div class="box"><h3>Design Thinking</h3><p>Empatizar con el usuario antes de definir el problema.</p></div>
+      <div class="box"><h3>El Clientograma</h3><p>Mapear y priorizar clientes, usuarios y actores.</p></div>
+      <div class="box"><h3>The Mom Test</h3><p>Rob Fitzpatrick. Entrevistar sobre hechos pasados, no sobre opiniones.</p></div>
+      <div class="box"><h3>Jobs to be Done</h3><p>Entender qué intenta lograr la persona, no qué producto quiere.</p></div>
+      <div class="box"><h3>Prototipado</h3><p>Mostrar algo concreto para obtener una reacción real.</p></div>
+      <div class="box"><h3>Radical Product Thinking</h3><p>Radhika Dutt. La plantilla de visión de producto que usamos hoy.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 Para qué sirve -->
+<section class="slide" id="s6">
+  <div class="in">
+    <p class="label">Fundamentos · ¿Para qué sirve?</p>
+    <h2>Customer Discovery te aleja del riesgo de construir algo que <span class="hl">nadie va a usar ni comprar</span></h2>
+    <p class="lead">Antes de invertir tiempo, presupuesto y reputación.</p>
+  </div>
+</section>
+
+<!-- 7 Cómo se hace -->
+<section class="slide" id="s7">
+  <div class="in">
+    <p class="label">Fundamentos · ¿Cómo se hace?</p>
+    <h2>Se hace con experimentos, y lo hiciste bien cuando tienes <span class="hl">evidencia, no opiniones</span></h2>
+    <div class="grid g2">
+      <div class="box"><span class="k">¿Cómo se hace?</span><p>Planteas hipótesis y las pones a prueba con personas reales.</p></div>
+      <div class="box"><span class="k">¿Cómo sé si lo hice bien?</span><p>Cuando cada hipótesis tiene evidencia que la respalda o la descarta.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 Product Vision -->
+<section class="slide" id="s8">
+  <div class="in">
+    <p class="label">¿Dónde estamos? · Product Vision</p>
+    <h2>Todo empieza por escribir tu visión y separar <span class="hl">lo que sabes de lo que crees</span></h2>
+    <p class="label" style="margin:28px 0 0;color:var(--muted)">Ejemplo</p>
+    <p class="lead" style="max-width:62ch;margin-top:8px;font-style:italic">Hoy, cuando un Kam de un laboratorio farmacéutico quiere anticiparse a lo que pasa con sus cuentas clave, tiene que revisar a mano noticias, licitaciones y normas en decenas de fuentes. Esto es inaceptable porque le consume horas y llega tarde a decisiones que afectan sus ventas. Queremos un mundo donde cada Kam sepa a tiempo qué cambió en sus cuentas y qué hacer al respecto, y lo haremos posible a través de un servicio semanal de alertas e insights por cuenta.</p>
+    <a class="btn" href="../product-vision/" target="_blank" rel="noopener">Ejercicio 1: escribe tu visión <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h7v7M13 3L4 12"/></svg></a>
+  </div>
+</section>
+
+<!-- 9 Discusión -->
+<section class="slide" id="s9">
+  <div class="in">
+    <p class="label">Discusión · Ejercicio 1</p>
+    <h2>Casi todo lo que escribimos todavía es hipótesis, <span class="hl">y está bien</span></h2>
+    <div class="grid g2">
+      <div class="box"><span class="k">Micrófono abierto</span><h3>¿Qué tan fácil fue?</h3></div>
+      <div class="box"><span class="k">Micrófono abierto</span><h3>¿En qué nivel de evidencia o de supuestos están?</h3></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 Priorización -->
+<section class="slide" id="s10">
+  <div class="in">
+    <p class="label">¿Qué pasa cuando tienes varias hipótesis de usuarios?</p>
+    <h2>Si tienes varios segmentos, empieza por el que <span class="hl">más duele y más fácil puedes alcanzar</span></h2>
+    <div class="pasos"><b>Define criterios</b><span class="flecha">→</span><b>Califica de 0 a 5</b><span class="flecha">→</span><b>Pondera si hace falta</b><span class="flecha">→</span><b>Empieza por el primero</b></div>
+    <table class="tabla">
+      <thead><tr><th>Segmento</th><th>Intensidad</th><th>Frecuencia</th><th>Acceso</th><th>Pago</th><th>Puntaje</th></tr></thead>
+      <tbody>
+        <tr class="top"><td>Kams de cuentas institucionales</td><td>5</td><td>4</td><td>4</td><td>4</td><td class="t">17</td></tr>
+        <tr><td>Kams de aseguradoras e instituciones públicas</td><td>5</td><td>3</td><td>3</td><td>4</td><td class="t">15</td></tr>
+        <tr><td>Visitadores médicos</td><td>3</td><td>5</td><td>5</td><td>2</td><td class="t">15</td></tr>
+        <tr><td>Gerentes de acceso al mercado</td><td>4</td><td>2</td><td>2</td><td>5</td><td class="t">13</td></tr>
+      </tbody>
+    </table>
+    <a class="btn" href="../priorizacion/" target="_blank" rel="noopener">Ejercicio 2: prioriza tus segmentos <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h7v7M13 3L4 12"/></svg></a>
+  </div>
+</section>
+
+<!-- Break -->
+<section class="slide centro" id="break">
+  <div class="in">
+    <p class="label">Pausa</p>
+    <h2 class="gigante">Volvemos en <span class="hl">5 minutos</span></h2>
+  </div>
+</section>
+
+<!-- 11 Experimentación -->
+<section class="slide" id="s11">
+  <div class="in">
+    <p class="label">Experimentación · ¿Qué es?</p>
+    <h2>Un experimento pone a prueba lo que creemos <span class="hl">frente a la realidad</span></h2>
+    <div class="he">
+      <div class="box"><span class="k">Lo que nos imaginamos</span><h3>Hipótesis</h3></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M14 6l6 6-6 6"/></svg>
+      <div class="box ev"><span class="k">Lo que probamos</span><h3>Evidencias</h3></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 Tipos -->
+<section class="slide" id="s12">
+  <div class="in">
+    <p class="label">Tipos de experimentos</p>
+    <h2>Cada tipo responde una pregunta distinta y <span class="hl">se repite hasta tener evidencia</span></h2>
+    <div class="tipos">
+      <div class="box"><span class="k">1 · Exploración</span><h3>¿El problema existe y a quién le duele?</h3><p>Entender el problema y al usuario.</p><span class="loop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>Itera</span></div>
+      <div class="sep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5"/></svg></div>
+      <div class="box"><span class="k">2 · Discurso</span><h3>¿La propuesta provoca una acción?</h3><p>Poner a prueba la propuesta de valor.</p><span class="loop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>Itera</span></div>
+      <div class="sep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5"/></svg></div>
+      <div class="box"><span class="k">3 · Simulación</span><h3>¿Usan y aprueban la solución?</h3><p>Entregar la propuesta de valor de forma manual.</p><span class="loop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>Itera</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 Fases -->
+<section class="slide" id="s13">
+  <div class="in">
+    <p class="label">Cómo se hace un experimento</p>
+    <h2>Todo experimento tiene tres fases: <span class="hl">planear, ejecutar y analizar</span></h2>
+    <div class="grid g3">
+      <div class="box"><span class="k">1 · Planear</span><h3>Antes de salir</h3><p>Hipótesis, métrica meta, canal, duración y recursos.</p></div>
+      <div class="box"><span class="k">2 · Ejecutar</span><h3>Contacto directo con el cliente</h3><p>Entrevistas y conversaciones con las personas del segmento.</p></div>
+      <div class="box"><span class="k">3 · Analizar</span><h3>Después de hablar</h3><p>Aprendizajes, métrica resultante y siguiente paso.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 IA -->
+<section class="slide" id="s14">
+  <div class="in">
+    <p class="label">Uso de IA en Customer Discovery</p>
+    <h2>La IA acelera la ejecución y el análisis; <span class="hl">la planeación sigue siendo tuya</span></h2>
+    <div class="grid g3">
+      <div class="box"><span class="tag hum">Humano</span><h3>Planeación</h3><p>Tú decides qué creer, qué medir y con quién hablar.</p></div>
+      <div class="box"><span class="tag ia">Asistida</span><h3>Ejecución</h3><p>Guiones de entrevista y transcripción de conversaciones.</p></div>
+      <div class="box"><span class="tag ia">Asistido</span><h3>Análisis</h3><p>Patrones entre entrevistas, métrica resultante y reportes.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 Exploración -->
+<section class="slide" id="s15">
+  <div class="in">
+    <p class="label">Experimentos · Exploración</p>
+    <h2>La exploración comprueba que el problema existe <span class="hl">sin mencionar la solución</span></h2>
+    <div class="chips"><span class="chip">Objetivo</span><span class="chip">Hipótesis de cliente o usuario</span><span class="chip">Hipótesis de problema</span><span class="chip">Canal</span><span class="chip">Métrica meta</span><span class="chip">Duración</span><span class="chip">Recursos</span></div>
+    <p class="metrica">Métrica: <b>X de Y entrevistados evidencian el problema</b> · Prompt para el guion · Prompt para analizar</p>
+    <a class="btn" href="../exploracion/" target="_blank" rel="noopener">Abrir la herramienta de exploración <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h7v7M13 3L4 12"/></svg></a>
+  </div>
+</section>
+
+<!-- 16 Discurso -->
+<section class="slide" id="s16">
+  <div class="in">
+    <p class="label">Experimentos · Discurso</p>
+    <h2>El discurso mide si tu propuesta provoca <span class="hl">una acción, no un elogio</span></h2>
+    <div class="chips"><span class="chip">Objetivo</span><span class="chip">Hipótesis de cliente o usuario</span><span class="chip">Hipótesis de problema</span><span class="chip nuevo">Hipótesis de propuesta de valor</span><span class="chip nuevo">Evidencia a obtener</span><span class="chip">Métrica meta</span></div>
+    <p class="metrica">Métrica: <b>X de Y entrevistados entregaron la evidencia</b> · Prompt para el guion · Prompt para analizar</p>
+    <a class="btn" href="../discurso/" target="_blank" rel="noopener">Abrir la herramienta de discurso <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h7v7M13 3L4 12"/></svg></a>
+  </div>
+</section>
+
+<!-- 17 Simulación -->
+<section class="slide" id="s17">
+  <div class="in">
+    <p class="label">Experimentos · Simulación</p>
+    <h2>La simulación entrega la solución a mano para ver si la aprueban <span class="hl">antes de construirla</span></h2>
+    <div class="chips"><span class="chip">Objetivo</span><span class="chip">Hipótesis de cliente o usuario</span><span class="chip">Hipótesis de problema</span><span class="chip nuevo">Hipótesis de solución</span><span class="chip">Métrica meta</span></div>
+    <p class="metrica">Métrica: <b>X de Y entrevistados aprobaron la solución</b> · Satisfacción de 1 a 5 · Prompt para el guion · Prompt para analizar</p>
+    <a class="btn" href="../simulacion/" target="_blank" rel="noopener">Abrir la herramienta de simulación <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h7v7M13 3L4 12"/></svg></a>
+  </div>
+</section>
+
+<!-- 18 Qué aprendimos -->
+<section class="slide centro" id="s18">
+  <div class="in">
+    <p class="label">Cierre</p>
+    <h2 class="gigante">¿Qué <span class="hl">aprendimos</span> hoy?</h2>
+    <p class="lead" style="text-align:center">Responde la evaluación y comparte tu resultado en el chat.</p>
+    <a class="btn" href="../examen/" target="_blank" rel="noopener">Abrir la evaluación <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h7v7M13 3L4 12"/></svg></a>
+  </div>
+</section>
+
+<!-- 19 Preguntas -->
+<section class="slide centro" id="s19">
+  <div class="in">
+    <h2 class="gigante"><span class="hl">Preguntas</span></h2>
+  </div>
+</section>
+
+<!-- 20 Cierre -->
+<section class="slide" id="s20">
+  <div class="in">
+    <h2 class="gigante" style="max-width:none"><span class="hl">Gracias</span></h2>
+    <p class="lead">Llévate las herramientas. Lo que escribas en ellas se guarda solo en tu navegador.</p>
+    <div class="enlaces">
+      <a href="../product-vision/" target="_blank" rel="noopener">Product Vision <span>→</span></a>
+      <a href="../priorizacion/" target="_blank" rel="noopener">Priorización de segmentos <span>→</span></a>
+      <a href="../exploracion/" target="_blank" rel="noopener">Experimento de exploración <span>→</span></a>
+      <a href="../discurso/" target="_blank" rel="noopener">Experimento de discurso <span>→</span></a>
+      <a href="../simulacion/" target="_blank" rel="noopener">Experimento de simulación <span>→</span></a>
+      <a href="../examen/" target="_blank" rel="noopener">Evaluación <span>→</span></a>
+    </div>
+    <p class="firma"><b>Juan Carlos Franco Zafra</b><a href="https://www.linkedin.com/in/juancarlosfranco/" target="_blank" rel="noopener">LinkedIn</a></p>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+  var total = slides.length;
+  slides.forEach(function (s, i) {
+    if (i > 0) { var p = document.createElement("p"); p.className = "pie"; p.textContent = "Juan Carlos Franco Zafra"; s.appendChild(p); }
+    var n = document.createElement("p"); n.className = "num"; n.textContent = String(i + 1).padStart(2, "0") + " / " + total; s.appendChild(n);
+  });
+  function actual() {
+    var mid = window.innerHeight / 2, best = 0;
+    slides.forEach(function (s, i) { var r = s.getBoundingClientRect(); if (r.top <= mid) best = i; });
+    return best;
+  }
+  function ir(i) {
+    i = Math.max(0, Math.min(total - 1, i));
+    slides[i].scrollIntoView({ behavior: "smooth", block: "start" });
+    history.replaceState(null, "", "#" + slides[i].id);
+  }
+  document.getElementById("prev").addEventListener("click", function () { ir(actual() - 1); });
+  document.getElementById("next").addEventListener("click", function () { ir(actual() + 1); });
+  document.addEventListener("keydown", function (e) {
+    if (e.target.closest && e.target.closest("input,textarea,select")) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === "ArrowDown" || k === "ArrowRight" || k === "PageDown" || (k === " " && !e.shiftKey)) { e.preventDefault(); ir(actual() + 1); }
+    else if (k === "ArrowUp" || k === "ArrowLeft" || k === "PageUp" || (k === " " && e.shiftKey)) { e.preventDefault(); ir(actual() - 1); }
+    else if (k === "Home") { e.preventDefault(); ir(0); }
+    else if (k === "End") { e.preventDefault(); ir(total - 1); }
+  });
+})();
+</script>
+</body>
+</html>

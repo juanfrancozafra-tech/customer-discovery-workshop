@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Evaluación · Juan Carlos Franco Zafra</title>
+<meta name="description" content="Evaluación final del taller de Customer Discovery: 4 preguntas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    color-scheme:dark;
+    --bg:#0F1420; --surface:#1A2233; --inset:#131a28; --surface-2:#252e42;
+    --text:#F2F4F8; --text-2:#c9cfda; --muted:#9AA3B2;
+    --rule:rgba(255,255,255,.07); --rule-strong:rgba(255,255,255,.14);
+    --yellow:#FFC53D; --on-yellow:#412402; --teal:#2DD4BF; --teal-soft:rgba(45,212,191,.12);
+    --crit:#f0837b; --crit-soft:rgba(240,131,123,.12);
+    --sans:"Inter",-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  button,input{font:inherit;color:inherit}
+  p{margin:0}
+  a{color:var(--teal);text-decoration:none}
+  a:hover{text-decoration:underline}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:4px}
+
+  .shell{max-width:760px;margin:0 auto;padding:24px 24px 64px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:16px;margin-bottom:48px;border-bottom:1px solid var(--rule-strong)}
+  .top .nombre{font-weight:600;font-size:15px;color:var(--text)}
+  .seg{display:inline-flex;border:1px solid var(--rule-strong);border-radius:8px;overflow:hidden}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;padding:7px 12px;cursor:pointer}
+  .seg button+button{border-left:1px solid var(--rule-strong)}
+  .seg button[aria-pressed="true"]{background:var(--surface-2);color:var(--text)}
+
+  .eyebrow{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin:0 0 14px}
+  h1{font-size:clamp(32px,5vw,46px);font-weight:700;line-height:1.12;letter-spacing:-.02em;margin:0 0 14px;text-wrap:balance}
+  h1 .hl{color:var(--yellow)}
+  .lead{font-size:18px;color:var(--text-2);max-width:56ch}
+
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:22px 24px}
+  .campo{margin-top:32px}
+  .campo label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+  .campo .opc{font-weight:400;color:var(--muted)}
+  .campo input{width:100%;max-width:360px;font-size:16px;background:var(--inset);border:1px solid var(--rule-strong);border-radius:8px;padding:10px 12px}
+  .campo input:focus{outline:none;border-color:var(--teal)}
+  input::placeholder{color:var(--muted);opacity:.8}
+
+  .preguntas{display:flex;flex-direction:column;gap:16px;margin-top:36px}
+  fieldset{border:0;margin:0;padding:0;min-width:0}
+  .q-n{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--teal)}
+  .enun{font-size:19px;font-weight:600;line-height:1.35;margin:4px 0 14px;overflow-wrap:anywhere}
+  .card{min-width:0;overflow-wrap:anywhere}
+  .op > span:not(.r):not(.marca-op){flex:1;min-width:0}
+  .ops{display:flex;flex-direction:column;gap:8px}
+  .op{position:relative;display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1px solid var(--rule-strong);border-radius:10px;background:var(--inset);cursor:pointer;font-size:15.5px;color:var(--text-2)}
+  .op:hover{border-color:var(--muted)}
+  .op input{position:absolute;opacity:0;width:1px;height:1px}
+  .op .r{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);margin-top:2px;display:grid;place-items:center}
+  .op input:checked ~ .r{border-color:var(--teal)}
+  .op input:checked ~ .r::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--teal)}
+  .op:has(input:checked){border-color:var(--teal);background:var(--teal-soft);color:var(--text)}
+  .op:has(input:focus-visible){outline:2px solid var(--teal);outline-offset:2px}
+  .falta .op{border-color:rgba(240,131,123,.5)}
+
+  /* revisión */
+  .revisado .op{cursor:default}
+  .op.ok{border-color:var(--teal)!important;background:var(--teal-soft)!important;color:var(--text)}
+  .op.mal{border-color:var(--crit)!important;background:var(--crit-soft)!important;color:var(--text)}
+  .marca-op{margin-left:auto;font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap;padding-left:8px}
+  .op.ok .marca-op{color:var(--teal)}
+  .op.mal .marca-op{color:var(--crit)}
+  .expl{margin-top:12px;font-size:15px;color:var(--text-2);border-left:3px solid var(--rule-strong);padding-left:12px}
+
+  .enviar{margin-top:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .btn{appearance:none;display:inline-flex;align-items:center;gap:8px;background:var(--yellow);color:var(--on-yellow);font-weight:600;font-size:16px;padding:12px 22px;border-radius:8px;border:0;cursor:pointer}
+  .btn:hover{filter:brightness(.95)}
+  .btn-sec{appearance:none;background:transparent;color:var(--teal);border:1px solid var(--teal);font-weight:500;font-size:15px;padding:10px 18px;border-radius:8px;cursor:pointer}
+  .btn-sec:hover{background:var(--teal-soft)}
+  .aviso{font-size:14.5px;color:var(--crit)}
+  .aviso:empty{display:none}
+
+  /* resultado */
+  .resultado{margin-top:32px;text-align:left}
+  .res-lbl{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .puntaje{font-size:clamp(48px,9vw,64px);font-weight:700;line-height:1;letter-spacing:-.02em;color:var(--yellow);margin:8px 0 12px}
+  .puntaje span{font-size:.45em;color:var(--muted);font-weight:600;letter-spacing:0}
+  .msg-t{font-size:22px;font-weight:600;margin-bottom:6px}
+  .msg{font-size:16.5px;color:var(--text-2);max-width:56ch}
+  .chat{margin-top:22px;padding-top:20px;border-top:1px solid var(--rule-strong)}
+  .chat .lbl{font-size:14px;font-weight:600;margin-bottom:8px}
+  .chat-fila{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+  .chat-txt{flex:1;min-width:220px;font-size:16px;background:var(--inset);border:1px solid var(--rule-strong);border-radius:8px;padding:11px 12px;color:var(--text)}
+  .copiado{font-size:14px;color:var(--teal);margin-top:8px}
+  .copiado:empty{display:none}
+  .repaso{margin-top:36px}
+  .repaso h2{font-size:22px;font-weight:700;margin:0 0 4px}
+  .repaso .sub{font-size:15px;color:var(--muted);margin-bottom:16px}
+
+  footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule-strong);display:flex;gap:8px 18px;flex-wrap:wrap;align-items:baseline}
+  footer .fn{font-weight:600;font-size:15px;margin:0}
+  footer a{font-size:14px}
+
+  @media (max-width:600px){
+    .shell{padding:18px 16px 48px}
+    .top{margin-bottom:36px}
+    .card{padding:18px 16px}
+    .enun{font-size:17.5px}
+    .lead{font-size:16.5px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <a class="nombre" href="https://www.linkedin.com/in/juancarlosfranco/" target="_blank" rel="noopener">Juan Carlos Franco Zafra</a>
+    <div class="seg" role="group" id="idioma">
+      <button type="button" id="l-es" lang="es" aria-pressed="true">Español</button>
+      <button type="button" id="l-en" lang="en" aria-pressed="false">English</button>
+    </div>
+  </header>
+
+  <p class="eyebrow" data-t="eyebrow"></p>
+  <h1 id="h1"></h1>
+  <p class="lead" data-t="lead"></p>
+
+  <form id="form" novalidate>
+    <div class="preguntas" id="preguntas"></div>
+    <div class="enviar">
+      <button class="btn" type="submit" id="b-enviar" data-t="ver"></button>
+      <p class="aviso" id="aviso" role="alert"></p>
+    </div>
+  </form>
+
+  <section class="resultado card" id="resultado" hidden tabindex="-1" aria-live="polite">
+    <p class="res-lbl" data-t="tuRes"></p>
+    <p class="puntaje" id="puntaje"></p>
+    <p class="msg-t" id="msg-t"></p>
+    <p class="msg" id="msg"></p>
+    <div class="chat">
+      <p class="lbl" data-t="chatLbl"></p>
+      <div class="chat-fila">
+        <input class="chat-txt" id="chat-txt" readonly>
+        <button class="btn" type="button" id="b-copiar" data-t="copiar"></button>
+      </div>
+      <p class="copiado" id="copiado" role="status"></p>
+    </div>
+  </section>
+
+  <section class="repaso" id="repaso" hidden>
+    <h2 data-t="repasoT"></h2>
+    <p class="sub" data-t="repasoS"></p>
+    <div class="preguntas" id="revision" style="margin-top:0"></div>
+    <div class="enviar"><button class="btn-sec" type="button" id="b-otra" data-t="otraVez"></button></div>
+  </section>
+
+  <footer>
+    <p class="fn">Juan Carlos Franco Zafra</p>
+    <a href="https://www.linkedin.com/in/juancarlosfranco/" target="_blank" rel="noopener">LinkedIn</a>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var T = {
+    es: {
+      eyebrow: "Customer Discovery · Evaluación",
+      h1: '¿Qué <span class="hl">aprendimos</span> hoy?',
+      lead: "Cuatro preguntas para cerrar el taller. Al final verás tu resultado y podrás copiarlo para compartirlo en el chat.",
+      pregunta: "Pregunta {n} de 4", ver: "Ver mi resultado",
+      faltan: "Te falta responder: {q}.", tuRes: "Tu resultado", de: "de",
+      chatLbl: "Cópialo y pégalo en el chat de la llamada", copiar: "Copiar", copiado: "Copiado. Ahora pégalo en el chat.", noCopia: "Selecciona el texto y cópialo.",
+      chat: "Customer Discovery: {p} de 4",
+      repasoT: "Repasa tus respuestas", repasoS: "La respuesta correcta está marcada en cada pregunta.",
+      correcta: "Correcta", tuya: "Tu respuesta", otraVez: "Intentar de nuevo",
+      msgs: [
+        ["Gracias por intentarlo", "Este tema se aprende haciendo. Repasa las explicaciones de abajo y aprovecha el espacio de preguntas para resolver tus dudas."],
+        ["Gracias por intentarlo", "Este tema se aprende haciendo. Repasa las explicaciones de abajo y aprovecha el espacio de preguntas para resolver tus dudas."],
+        ["Vas por buen camino", "Ya tienes la base. Repasa las dos preguntas que fallaste: en tu primer experimento todo va a encajar."],
+        ["¡Muy bien!", "Solo se te escapó una. Revisa la explicación y estás listo para tu primer experimento."],
+        ["¡Excelente!", "Respondiste todo bien. Ya tienes el paso a paso: ahora sal a hablar con tus clientes."]
+      ],
+      qs: [
+        { q: "¿Qué describe mejor el resultado de un proceso de Customer Discovery?",
+          o: ["Un producto mínimo listo para lanzar.", "Un conjunto de hipótesis mejor sustentadas sobre el cliente, el problema y la solución.", "Una lista de funcionalidades priorizadas por el equipo.", "Un estudio de mercado con el tamaño de la oportunidad."],
+          e: "Customer Discovery no entrega un producto: entrega hipótesis con más evidencia, para decidir qué construir y qué no." },
+        { q: "En tu visión de producto, el usuario y su problema siguen siendo hipótesis, pero ya tienes clara la solución. ¿Qué experimento te conviene hacer primero?",
+          o: ["Simulación, porque la solución ya está definida.", "Discurso, para ver si les gusta la propuesta.", "Exploración, porque primero hay que comprobar que el problema existe y a quién le duele.", "Ninguno: conviene construir un prototipo para mostrarlo."],
+          e: "Si el usuario o el problema siguen siendo hipótesis, toca explorar antes de hablar de soluciones. Tener clara la solución no la hace correcta." },
+        { q: "En un experimento de discurso, ¿cuál de estas respuestas cuenta como evidencia?",
+          o: ["\"Me parece muy interesante, avísame cuando esté listo\".", "\"Seguro lo usaría, a mi equipo le encantaría\".", "La persona deja sus datos para inscribirse en el piloto.", "La persona califica la propuesta con 5 de 5."],
+          e: "La evidencia es lo que la persona hace, no lo que dice. Dejar sus datos es un compromiso; el entusiasmo puede ser cortesía." },
+        { q: "¿Cuándo debes definir la métrica meta de un experimento, por ejemplo \"8 de 10 entrevistados evidencian el problema\"?",
+          o: ["Después de las entrevistas, según lo que encontraste.", "Antes de empezar, para saber si el resultado valida o no tu hipótesis.", "A mitad del experimento, cuando ya tienes las primeras respuestas.", "No es necesaria si las entrevistas fueron buenas."],
+          e: "Si defines la meta después, cualquier resultado parece bueno. Definirla antes es lo que hace honesto al experimento." }
+      ]
+    },
+    en: {
+      eyebrow: "Customer Discovery · Assessment",
+      h1: 'What did we <span class="hl">learn</span> today?',
+      lead: "Four questions to close the workshop. At the end you’ll see your result and can copy it to share in the chat.",
+      pregunta: "Question {n} of 4", ver: "See my result",
+      faltan: "You still need to answer: {q}.", tuRes: "Your result", de: "of",
+      chatLbl: "Copy it and paste it into the call chat", copiar: "Copy", copiado: "Copied. Now paste it into the chat.", noCopia: "Select the text and copy it.",
+      chat: "Customer Discovery: {p} of 4",
+      repasoT: "Review your answers", repasoS: "The correct answer is marked in each question.",
+      correcta: "Correct", tuya: "Your answer", otraVez: "Try again",
+      msgs: [
+        ["Thanks for giving it a try", "This is learned by doing. Review the explanations below and use the Q&A time to clear up your doubts."],
+        ["Thanks for giving it a try", "This is learned by doing. Review the explanations below and use the Q&A time to clear up your doubts."],
+        ["You’re on the right track", "You have the basics. Review the two questions you missed: it will all click in your first experiment."],
+        ["Very good!", "You missed just one. Read the explanation and you’re ready for your first experiment."],
+        ["Excellent!", "You got everything right. You have the step by step: now go talk to your customers."]
+      ],
+      qs: [
+        { q: "What best describes the outcome of a Customer Discovery process?",
+          o: ["A minimum product ready to launch.", "A set of better-supported hypotheses about the customer, the problem and the solution.", "A list of features prioritized by the team.", "A market study with the size of the opportunity."],
+          e: "Customer Discovery doesn’t deliver a product: it delivers hypotheses with more evidence, to decide what to build and what not to." },
+        { q: "In your product vision, the user and their problem are still hypotheses, but the solution is already clear to you. Which experiment should you run first?",
+          o: ["Concierge, because the solution is already defined.", "Pitch, to see whether they like the proposition.", "Exploration, because you first need to check that the problem exists and who it hurts.", "None: it’s better to build a prototype to show it."],
+          e: "If the user or the problem are still hypotheses, explore before talking about solutions. Having a clear solution doesn’t make it right." },
+        { q: "In a pitch experiment, which of these responses counts as evidence?",
+          o: ["\"Sounds really interesting, let me know when it’s ready\".", "\"I’d definitely use it, my team would love it\".", "The person leaves their details to sign up for the pilot.", "The person rates the proposition 5 out of 5."],
+          e: "Evidence is what people do, not what they say. Leaving their details is a commitment; enthusiasm can be politeness." },
+        { q: "When should you define an experiment’s target metric, for example \"8 of 10 interviewees show evidence of the problem\"?",
+          o: ["After the interviews, based on what you found.", "Before starting, so you know whether the result validates your hypothesis.", "Halfway through, once you have the first answers.", "It isn’t needed if the interviews went well."],
+          e: "If you set the target afterwards, any result looks good. Setting it beforehand is what makes the experiment honest." }
+      ]
+    }
+  };
+  var CORRECTAS = [1, 2, 2, 1];
+  var LETRAS = ["a", "b", "c", "d"];
+  var S = { lang: "es", resp: [null, null, null, null], enviado: false };
+  var $ = function (id) { return document.getElementById(id); };
+  function t(k) { return T[S.lang][k]; }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
+  function renderPreguntas() {
+    $("preguntas").innerHTML = t("qs").map(function (q, i) {
+      return '<div class="card" id="q' + i + '"><span class="q-n">' + esc(t("pregunta").replace("{n}", i + 1)) + '</span><p class="enun" id="qt' + i + '">' + esc(q.q) + '</p><div class="ops" role="radiogroup" aria-labelledby="qt' + i + '">' +
+        q.o.map(function (o, j) {
+          return '<label class="op"><input type="radio" name="q' + i + '" value="' + j + '"' + (S.resp[i] === j ? " checked" : "") + '><span class="r" aria-hidden="true"></span><span>' + LETRAS[j] + ") " + esc(o) + "</span></label>";
+        }).join("") + "</div></div>";
+    }).join("");
+  }
+  $("preguntas").addEventListener("change", function (e) {
+    if (e.target.name) { var i = Number(e.target.name.slice(1)); S.resp[i] = Number(e.target.value); $("q" + i).classList.remove("falta"); }
+  });
+
+  function puntaje() { return S.resp.filter(function (r, i) { return r === CORRECTAS[i]; }).length; }
+  function textoChat() {
+    return t("chat").replace("{p}", puntaje());
+  }
+
+  function renderResultado() {
+    var p = puntaje(), m = t("msgs")[p];
+    $("puntaje").innerHTML = p + ' <span>' + esc(t("de")) + " 4</span>";
+    $("msg-t").textContent = m[0]; $("msg").textContent = m[1];
+    $("chat-txt").value = textoChat();
+    $("revision").innerHTML = t("qs").map(function (q, i) {
+      var ok = S.resp[i] === CORRECTAS[i];
+      return '<div class="card revisado"><span class="q-n">' + esc(t("pregunta").replace("{n}", i + 1)) + '</span><p class="enun">' + esc(q.q) + '</p><div class="ops">' +
+        q.o.map(function (o, j) {
+          var cls = j === CORRECTAS[i] ? " ok" : (j === S.resp[i] ? " mal" : "");
+          var marca = j === CORRECTAS[i] ? t("correcta") : (j === S.resp[i] ? t("tuya") : "");
+          return '<div class="op' + cls + '"><span>' + LETRAS[j] + ") " + esc(o) + "</span>" + (marca ? '<span class="marca-op">' + esc(marca) + "</span>" : "") + "</div>";
+        }).join("") + '</div><p class="expl">' + esc(q.e) + "</p></div>";
+    }).join("");
+  }
+
+  $("form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var faltan = [];
+    S.resp.forEach(function (r, i) { if (r === null) { faltan.push(i + 1); $("q" + i).classList.add("falta"); } });
+    if (faltan.length) { $("aviso").textContent = t("faltan").replace("{q}", faltan.join(", ")); $("q" + (faltan[0] - 1)).scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+    $("aviso").textContent = "";
+    S.enviado = true;
+    renderResultado();
+    $("form").hidden = true; $("resultado").hidden = false; $("repaso").hidden = false;
+    $("resultado").scrollIntoView({ behavior: "smooth", block: "start" }); $("resultado").focus({ preventScroll: true });
+  });
+
+  $("b-copiar").addEventListener("click", function () {
+    var txt = $("chat-txt").value;
+    function ok() { $("copiado").textContent = t("copiado"); setTimeout(function () { $("copiado").textContent = ""; }, 3500); }
+    function fallback() {
+      var el = $("chat-txt"); el.focus(); el.select();
+      var r = false; try { r = document.execCommand("copy"); } catch (e) {}
+      if (r) ok(); else $("copiado").textContent = t("noCopia");
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, fallback); else fallback();
+  });
+  $("chat-txt").addEventListener("focus", function (e) { e.target.select(); });
+
+  $("b-otra").addEventListener("click", function () {
+    S.resp = [null, null, null, null]; S.enviado = false;
+    $("form").hidden = false; $("resultado").hidden = true; $("repaso").hidden = true;
+    renderPreguntas(); window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  function textos() {
+    document.documentElement.lang = S.lang;
+    $("l-es").setAttribute("aria-pressed", S.lang === "es"); $("l-en").setAttribute("aria-pressed", S.lang === "en");
+    $("idioma").setAttribute("aria-label", S.lang === "es" ? "Idioma" : "Language");
+    document.querySelectorAll("[data-t]").forEach(function (el) { el.textContent = t(el.getAttribute("data-t")); });
+    $("h1").innerHTML = t("h1");
+  }
+  function cambiar(l) { if (S.lang === l) return; S.lang = l; textos(); renderPreguntas(); if (S.enviado) renderResultado(); $("aviso").textContent = ""; }
+  $("l-es").addEventListener("click", function () { cambiar("es"); });
+  $("l-en").addEventListener("click", function () { cambiar("en"); });
+
+  textos(); renderPreguntas();
+})();
+</script>
+</body>
+</html>

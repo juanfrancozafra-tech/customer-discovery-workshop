@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Priorización de segmentos · Juan Carlos Franco Zafra</title>
+<meta name="description" content="Evalúa tus segmentos de clientes o usuarios con criterios ponderables y descubre cuál priorizar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<style>
+  :root{
+    color-scheme:dark;
+    --bg:#0F1420; --surface:#1A2233; --inset:#131a28; --surface-2:#252e42;
+    --text:#F2F4F8; --text-2:#c9cfda; --muted:#9AA3B2;
+    --rule:rgba(255,255,255,.06); --rule-strong:rgba(255,255,255,.14);
+    --yellow:#FFC53D; --on-yellow:#412402; --yellow-soft:rgba(255,197,61,.10);
+    --teal:#2DD4BF; --on-teal:#04342C; --teal-soft:rgba(45,212,191,.14);
+    --crit:#f0837b; --crit-soft:rgba(240,131,123,.14);
+    --sans:"Inter",-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;padding-bottom:110px}
+  button,input,select,textarea{font:inherit;color:inherit}
+  a{color:var(--teal);text-decoration:none}
+  a:hover{text-decoration:underline}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:4px}
+
+  .shell{max-width:1120px;margin:0 auto;padding:24px 24px 40px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:16px;margin-bottom:48px;border-bottom:1px solid var(--rule-strong)}
+  .top .nombre{font-weight:600;font-size:15px;color:var(--text)}
+  .top .nombre:hover{color:var(--teal);text-decoration:none}
+  .seg{display:inline-flex;border:1px solid var(--rule-strong);border-radius:8px;overflow:hidden}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;padding:7px 12px;cursor:pointer}
+  .seg button+button{border-left:1px solid var(--rule-strong)}
+  .seg button[aria-pressed="true"]{background:var(--surface-2);color:var(--text)}
+
+  .eyebrow{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin:0 0 14px}
+  h1{font-size:clamp(32px,5vw,48px);font-weight:700;line-height:1.12;letter-spacing:-.02em;margin:0 0 16px;max-width:22ch;text-wrap:balance}
+  h1 .hl{color:var(--yellow)}
+  .lead{font-size:18px;color:var(--text-2);max-width:62ch;margin:0}
+  .privacidad{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-2);margin:20px 0 0;padding:7px 12px;border:1px solid var(--rule-strong);border-radius:999px}
+  .privacidad svg{flex:none;color:var(--teal)}
+
+  .sec{margin-top:56px}
+  .sec-head{margin-bottom:18px}
+  .sec-n{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--teal)}
+  .sec h2{font-size:28px;font-weight:700;letter-spacing:-.015em;line-height:1.2;margin:4px 0 6px}
+  .sec-sub{font-size:15.5px;color:var(--muted);margin:0;max-width:66ch}
+
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:24px 26px}
+  .campos{display:grid;gap:16px;grid-template-columns:1.4fr 1fr}
+  .campo label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+  .campo input{width:100%;font-size:15.5px;color:var(--text);background:var(--inset);border:1px solid var(--rule-strong);border-radius:8px;padding:10px 12px}
+  input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
+
+  /* barra de herramientas de la matriz */
+  .tools{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;margin-bottom:16px}
+  .switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;font-size:14.5px;font-weight:500;user-select:none}
+  .switch input{position:absolute;opacity:0;width:1px;height:1px}
+  .switch .track{width:38px;height:22px;border-radius:999px;background:var(--surface-2);border:1px solid var(--rule-strong);position:relative;transition:background .15s}
+  .switch .track::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+  .switch input:checked + .track{background:var(--teal-soft);border-color:var(--teal)}
+  .switch input:checked + .track::after{transform:translateX(16px);background:var(--teal)}
+  .switch input:focus-visible + .track{outline:2px solid var(--teal);outline-offset:2px}
+  .agregar{appearance:none;background:transparent;border:1px dashed var(--rule-strong);border-radius:8px;color:var(--teal);font-size:14px;font-weight:500;padding:8px 14px;cursor:pointer;white-space:nowrap}
+  .agregar:hover{border-color:var(--teal);background:var(--teal-soft)}
+  .agregar:disabled{opacity:.4;cursor:not-allowed;background:transparent}
+
+  /* matriz */
+  .wrap{overflow-x:auto;border:1px solid var(--rule-strong);border-radius:10px;background:var(--inset)}
+  table{border-collapse:separate;border-spacing:0;width:100%;min-width:640px}
+  th,td{padding:10px 10px;border-bottom:1px solid var(--rule-strong);vertical-align:middle;text-align:left}
+  thead th{background:var(--surface);font-size:13px;font-weight:600;vertical-align:top}
+  tbody tr:last-child td{border-bottom:0}
+  .c-seg{position:sticky;left:0;z-index:2;background:var(--inset);min-width:230px;width:28%;border-right:1px solid var(--rule-strong)}
+  thead .c-seg{background:var(--surface);z-index:3}
+  .lbl-col{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding-top:9px;display:block}
+  .ch{display:flex;align-items:flex-start;gap:2px;min-width:150px}
+  .ch textarea{flex:1;min-width:0;background:transparent;border:1px solid transparent;border-radius:6px;padding:5px 6px;font-weight:600;font-size:14px;line-height:1.35;color:var(--text);resize:none;overflow:hidden;display:block}
+  .ch textarea:hover{border-color:var(--rule-strong)}
+  .ch textarea:focus{background:var(--inset);border-color:var(--teal);outline:none}
+  .ico{appearance:none;flex:none;width:28px;height:28px;border:0;border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;display:inline-grid;place-items:center;padding:0}
+  .ico:hover{background:var(--surface-2);color:var(--text)}
+  .ico.x:hover{background:var(--crit-soft);color:var(--crit)}
+  .ico svg{width:15px;height:15px}
+  .peso{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--muted);font-weight:500}
+  select{appearance:none;-webkit-appearance:none;background:var(--surface-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5l3 3 3-3' fill='none' stroke='%239AA3B2' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 9px center;border:1px solid var(--rule-strong);border-radius:7px;padding:7px 28px 7px 11px;font-size:15px;font-weight:600;cursor:pointer;color:var(--text)}
+  select:hover{border-color:var(--muted)}
+  select.vacio{color:var(--muted);font-weight:400;border-style:dashed;background-color:transparent}
+  select option{background:var(--surface);color:var(--text)}
+  .peso select{font-size:12.5px;padding:4px 24px 4px 8px;font-weight:500}
+
+  .fila{display:flex;align-items:center;gap:8px}
+  .rank{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--surface-2);color:var(--text-2)}
+  .rank.na{background:transparent;border:1px dashed var(--rule-strong);color:var(--muted)}
+  .nseg{flex:1;min-width:0}
+  .nseg textarea{width:100%;background:transparent;border:1px solid transparent;border-radius:6px;padding:5px 8px;font-size:15px;font-weight:500;line-height:1.35;color:var(--text);resize:none;overflow:hidden;display:block}
+  .nseg textarea:hover{border-color:var(--rule-strong)}
+  .nseg textarea:focus{background:var(--bg);border-color:var(--teal);outline:none}
+  .tag{display:block;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;padding:0 8px;color:var(--muted)}
+  .tag:empty{display:none}
+  .c-tot{white-space:nowrap;min-width:92px;border-right:1px solid var(--rule-strong)}
+  .tot b{font-size:18px;font-weight:700}
+  .tot span{font-size:13px;color:var(--muted)}
+  .tot.na{font-size:13px;color:var(--muted)}
+  .c-x{width:44px;text-align:right}
+
+  tr.lider td{background:var(--yellow-soft)}
+  tr.lider .c-seg{background:#2a2a24;box-shadow:inset 3px 0 0 var(--yellow)}
+  tr.lider .rank{background:var(--yellow);color:var(--on-yellow)}
+  tr.lider .tag{color:var(--yellow)}
+  tr.lider .tot b{color:var(--yellow)}
+
+  .debajo{display:flex;align-items:center;justify-content:space-between;gap:10px 20px;flex-wrap:wrap;margin-top:14px}
+  .nota{font-size:13.5px;color:var(--muted);margin:0}
+  .nota:empty{display:none}
+
+  /* popover de ayuda */
+  .pop{position:fixed;z-index:60;max-width:280px;background:var(--surface-2);border:1px solid var(--rule-strong);border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.5;color:var(--text-2);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+  .pop b{display:block;color:var(--text);font-size:14px;margin-bottom:6px}
+  .pop p{margin:0}
+  .pop p+p{margin-top:4px}
+
+  /* ejemplo */
+  details.ej{margin-top:22px;border-top:1px solid var(--rule-strong);padding-top:16px}
+  details.ej summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:600;color:var(--teal)}
+  details.ej summary::-webkit-details-marker{display:none}
+  details.ej summary::before{content:"";border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .15s}
+  details.ej[open] summary::before{transform:rotate(90deg)}
+  .ej-panel{margin-top:12px;background:var(--inset);border:1px solid var(--rule);border-radius:10px;padding:16px 18px}
+  .ej-caso{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  .ej-tab{width:100%;min-width:0;font-size:14px}
+  .ej-tab th,.ej-tab td{padding:7px 8px;border-bottom:1px solid var(--rule)}
+  .ej-tab th{font-size:12px;font-weight:600;color:var(--muted);background:transparent}
+  .ej-tab td.n,.ej-tab th.n{text-align:center}
+  .ej-tab tr:first-child td{color:var(--text)}
+  .ej-tab tbody tr:first-child td:last-child{color:var(--yellow);font-weight:700}
+  .ej-scroll{overflow-x:auto}
+  .ej-pie{display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .btn-sec{appearance:none;background:transparent;color:var(--teal);border:1px solid var(--teal);font-weight:500;font-size:14px;padding:9px 16px;border-radius:8px;cursor:pointer;white-space:nowrap}
+  .btn-sec:hover{background:var(--teal-soft)}
+
+  /* botones y barra */
+  .btn{appearance:none;font-weight:600;font-size:14.5px;padding:10px 18px;border-radius:8px;background:var(--yellow);color:var(--on-yellow);border:0;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:8px}
+  .btn:hover{filter:brightness(.95)}
+  .btn-lnk{appearance:none;background:transparent;border:0;color:var(--muted);font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;cursor:pointer;padding:9px 6px;white-space:nowrap}
+  .btn-lnk:hover{color:var(--text)}
+  .btn-lnk.peligro{color:var(--crit)}
+  .barra{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(15,20,32,.96);backdrop-filter:blur(6px);border-top:1px solid var(--rule-strong);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .barra-in{max-width:1120px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:10px 20px;flex-wrap:wrap}
+  .prog{flex:1;min-width:200px;font-size:14.5px;font-weight:600}
+  .acc{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .dd{position:relative}
+  .menu{position:absolute;bottom:calc(100% + 8px);left:0;z-index:40;min-width:270px;background:var(--surface);border:1px solid var(--rule-strong);border-radius:10px;padding:6px;display:grid;gap:2px}
+  .menu button{appearance:none;border:0;background:transparent;text-align:left;padding:9px 12px;border-radius:7px;display:grid;gap:1px;cursor:pointer}
+  .menu button:hover,.menu button:focus-visible{background:var(--surface-2);outline:none}
+  .menu b{font-size:14px;font-weight:600}
+  .menu span{font-size:12.5px;color:var(--muted)}
+  #b-desc svg{transition:transform .15s}
+  #b-desc[aria-expanded="true"] svg{transform:rotate(180deg)}
+  .conf{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text-2)}
+  .aviso{flex-basis:100%;font-size:13.5px;color:var(--text-2);margin:-2px 0 0}
+  .aviso:empty{display:none}
+
+  footer{margin-top:72px;padding-top:20px;border-top:1px solid var(--rule-strong);display:flex;gap:8px 18px;flex-wrap:wrap;align-items:baseline}
+  footer .fn{font-weight:600;font-size:15px;margin:0}
+  footer a{font-size:14px}
+
+  @media (max-width:720px){
+    .shell{padding:18px 16px 32px}
+    .top{margin-bottom:36px}
+    .campos{grid-template-columns:1fr}
+    .card{padding:20px 14px}
+    .c-seg{min-width:190px}
+    .barra-in{padding:10px 16px;gap:8px 12px}
+    .prog{flex-basis:100%;min-width:0}
+    .lead{font-size:16.5px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <a class="nombre" href="https://www.linkedin.com/in/juancarlosfranco/" target="_blank" rel="noopener">Juan Carlos Franco Zafra</a>
+    <div class="seg" role="group" id="idioma">
+      <button type="button" id="l-es" lang="es" aria-pressed="true">Español</button>
+      <button type="button" id="l-en" lang="en" aria-pressed="false">English</button>
+    </div>
+  </header>
+
+  <p class="eyebrow" data-t="eyebrow"></p>
+  <h1 id="h1"></h1>
+  <p class="lead" data-t="lead"></p>
+  <p class="privacidad"><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span data-t="privacidad"></span></p>
+
+  <section class="sec" aria-labelledby="s1-t">
+    <div class="sec-head">
+      <span class="sec-n" data-t="s1n"></span>
+      <h2 id="s1-t" data-t="s1"></h2>
+      <p class="sec-sub" data-t="s1sub"></p>
+    </div>
+    <div class="card">
+      <div class="campos">
+        <div class="campo"><label for="m-nombre" data-t="mNombre"></label><input id="m-nombre" type="text" autocomplete="off"></div>
+        <div class="campo"><label for="m-autor" data-t="mAutor"></label><input id="m-autor" type="text" autocomplete="off"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="s2-t">
+    <div class="sec-head">
+      <span class="sec-n" data-t="s2n"></span>
+      <h2 id="s2-t" data-t="s2"></h2>
+      <p class="sec-sub" data-t="s2sub"></p>
+    </div>
+    <div class="card">
+      <div class="tools">
+        <label class="switch"><input type="checkbox" id="pond"><span class="track" aria-hidden="true"></span><span data-t="ponderar"></span></label>
+        <button type="button" class="agregar" id="b-crit" data-t="agrCrit"></button>
+      </div>
+      <div class="wrap"><table id="matriz"></table></div>
+      <div class="debajo">
+        <button type="button" class="agregar" id="b-seg" data-t="agrSeg"></button>
+        <p class="nota" id="nota"></p>
+      </div>
+
+      <details class="ej" id="ej">
+        <summary data-t="verEj"></summary>
+        <div class="ej-panel">
+          <p class="ej-caso" data-t="ejCaso"></p>
+          <div class="ej-scroll"><table class="ej-tab" id="ej-tab"></table></div>
+          <div class="ej-pie">
+            <button type="button" class="btn-sec" id="b-ej" data-t="usarEj"></button>
+            <span class="conf" id="ej-conf" hidden>
+              <span data-t="ejPregunta"></span>
+              <button type="button" class="btn-lnk peligro" id="b-ej-si" data-t="ejSi"></button>
+              <button type="button" class="btn-lnk" id="b-ej-no" data-t="cNo"></button>
+            </span>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <footer>
+    <p class="fn">Juan Carlos Franco Zafra</p>
+    <a href="https://www.linkedin.com/in/juancarlosfranco/" target="_blank" rel="noopener">LinkedIn</a>
+  </footer>
+</div>
+
+<div class="pop" id="pop" role="tooltip" hidden></div>
+
+<div class="barra">
+  <div class="barra-in">
+    <div class="prog" id="prog"></div>
+    <div class="acc" id="acc">
+      <div class="dd">
+        <button class="btn" type="button" id="b-desc" aria-haspopup="true" aria-expanded="false" aria-controls="menu"><span data-t="bDesc"></span><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 6.5l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+        <div class="menu" id="menu" role="menu" hidden>
+          <button type="button" role="menuitem" data-fmt="docx"><b data-t="fDocx"></b><span data-t="fDocxS"></span></button>
+          <button type="button" role="menuitem" data-fmt="pdf"><b data-t="fPdf"></b><span data-t="fPdfS"></span></button>
+        </div>
+      </div>
+      <button class="btn-lnk" type="button" id="b-copiar" data-t="bCopiar"></button>
+      <button class="btn-lnk" type="button" id="b-limpiar" data-t="bLimpiar"></button>
+    </div>
+    <div class="conf" id="conf" hidden>
+      <span data-t="cPregunta"></span>
+      <button class="btn-lnk peligro" type="button" id="b-si" data-t="cSi"></button>
+      <button class="btn-lnk" type="button" id="b-no" data-t="cNo"></button>
+    </div>
+    <p class="aviso" id="aviso" role="status"></p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var CLAVE = "cdw-priorizacion-v1";
+  var LINKEDIN = "linkedin.com/in/juancarlosfranco";
+  var MAX_CRIT = 8, MAX_SEG = 15;
+  var ICO_INFO = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7.2v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.9" r=".95" fill="currentColor"/></svg>';
+  var ICO_X = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+
+  var T = {
+    es: {
+      locale: "es-CO", aIdioma: "Idioma",
+      eyebrow: "Customer Discovery · Priorización de segmentos",
+      h1: 'Decide con qué segmento <span class="hl">empezar</span>',
+      lead: "Cuando tienes varias hipótesis de clientes o usuarios, no puedes validarlas todas a la vez. Califica cada segmento con los mismos criterios y la matriz te muestra cuál priorizar.",
+      privacidad: "Lo que escribas se guarda solo en este navegador. No viaja a ningún lado y nadie más lo ve.",
+      s1n: "Paso 1", s1: "Identifica tu iniciativa", s1sub: "Estos datos encabezan el documento que vas a descargar.",
+      mNombre: "Nombre de la iniciativa", pNombre: "Ej. Insights para Kams", mAutor: "Autor o equipo", pAutor: "Persona o equipo",
+      s2n: "Paso 2", s2: "Califica tus segmentos",
+      s2sub: "Escribe un segmento por fila y califica cada criterio de 0 a 5. Escribe los criterios en positivo: más alto siempre es mejor. Las filas se ordenan solas de mayor a menor puntaje.",
+      ponderar: "Ponderar criterios", agrCrit: "+ Agregar criterio", agrSeg: "+ Agregar segmento",
+      colSeg: "Segmento", colTot: "Puntaje", peso: "Peso",
+      pesos: { 1: "1 · Normal", 2: "2 · Importante", 3: "3 · Muy importante" },
+      phSeg: "Nombre del segmento", phCrit: "Criterio",
+      sinEval: "Sin evaluar", faltan: "Faltan {n}", prioritario: "Segmento prioritario", empate: "Empate", empate1: "Empate en el primer lugar", de: "de",
+      info: "Qué significa este criterio", quitarCrit: "Quitar criterio «{c}»", quitarSeg: "Quitar segmento «{s}»", segSin: "sin nombre",
+      celda: "{s}: {c}",
+      notaInc: "Los segmentos sin evaluar entran al ranking cuando tienen todos sus criterios calificados.",
+      prog: "{a} de {b} segmentos evaluados",
+      verEj: "Ver ejemplo", ejCaso: "Caso: Kam de un laboratorio farmacéutico",
+      usarEj: "Usar este ejemplo", ejPregunta: "¿Reemplazar lo que escribiste?", ejSi: "Sí, reemplazar",
+      ejCargado: "Listo, el ejemplo quedó cargado. Usa Limpiar para empezar de cero.",
+      bDesc: "Descargar", fDocx: "Word (.docx)", fDocxS: "Para editar y guardar como versión", fPdf: "PDF", fPdfS: "Para compartir tal cual",
+      bCopiar: "Copiar texto", bCopiado: "Copiado", bLimpiar: "Limpiar",
+      cPregunta: "¿Borrar todo lo escrito?", cSi: "Sí, borrar", cNo: "Cancelar",
+      borrado: "Listo, la matriz quedó en blanco.", ok: "Listo, la descarga quedó guardada.",
+      eNoDocx: "No se pudo preparar el archivo de Word. Revisa tu conexión o descarga el PDF.",
+      eNoPdf: "No se pudo generar el PDF. Revisa tu conexión o usa Copiar texto.",
+      eCopiar: "Tu navegador no deja copiar automáticamente.",
+      docEtiqueta: "PRIORIZACIÓN DE SEGMENTOS", docTitulo: "Priorización de segmentos", docAutor: "Autor", docVersion: "Versión",
+      docCriterios: "Criterios", docRanking: "Ranking", docPos: "#", docPond: "Ponderación", si: "Sí (peso de 1 a 3)", no: "No (todos los criterios valen igual)",
+      docSinRank: "Sin evaluar", archivo: "priorizacion-segmentos",
+      crit: {
+        intensidad: ["Intensidad del problema", "Qué tanto le duele el problema a este segmento.", "0 = es una molestia menor", "5 = le cuesta dinero, tiempo crítico o su trabajo"],
+        frecuencia: ["Frecuencia", "Qué tan seguido vive el problema.", "0 = casi nunca le pasa", "5 = le pasa todos los días"],
+        acceso: ["Facilidad de acceso", "Qué tan fácil es llegar a estas personas para hablar con ellas.", "0 = no sabemos cómo llegar a ellas", "5 = podemos hablar con ellas esta semana"],
+        pago: ["Disposición a pagar", "Qué tan probable es que paguen, o que alguien pague, por resolverlo.", "0 = no pagaría ni tiene presupuesto", "5 = ya paga por algo parecido o tiene presupuesto"]
+      },
+      critCorto: { intensidad: "Intensidad", frecuencia: "Frecuencia", acceso: "Acceso", pago: "Pago" }
+    },
+    en: {
+      locale: "en-US", aIdioma: "Language",
+      eyebrow: "Customer Discovery · Segment prioritization",
+      h1: 'Decide which segment to <span class="hl">start with</span>',
+      lead: "When you have several customer or user hypotheses, you can’t validate them all at once. Score each segment against the same criteria and the matrix shows you which one to prioritize.",
+      privacidad: "What you write is saved only in this browser. It doesn’t go anywhere and no one else sees it.",
+      s1n: "Step 1", s1: "Identify your initiative", s1sub: "These details head the document you will download.",
+      mNombre: "Initiative name", pNombre: "e.g. Insights for KAMs", mAutor: "Author or team", pAutor: "Person or team",
+      s2n: "Step 2", s2: "Score your segments",
+      s2sub: "Write one segment per row and score each criterion from 0 to 5. Phrase criteria positively: higher is always better. Rows sort themselves from highest to lowest score.",
+      ponderar: "Weight criteria", agrCrit: "+ Add criterion", agrSeg: "+ Add segment",
+      colSeg: "Segment", colTot: "Score", peso: "Weight",
+      pesos: { 1: "1 · Normal", 2: "2 · Important", 3: "3 · Very important" },
+      phSeg: "Segment name", phCrit: "Criterion",
+      sinEval: "Not scored", faltan: "{n} missing", prioritario: "Priority segment", empate: "Tie", empate1: "Tied for first place", de: "of",
+      info: "What this criterion means", quitarCrit: "Remove criterion “{c}”", quitarSeg: "Remove segment “{s}”", segSin: "unnamed",
+      celda: "{s}: {c}",
+      notaInc: "Unscored segments join the ranking once all their criteria are scored.",
+      prog: "{a} of {b} segments scored",
+      verEj: "See example", ejCaso: "Case: KAM at a pharmaceutical company",
+      usarEj: "Use this example", ejPregunta: "Replace what you wrote?", ejSi: "Yes, replace",
+      ejCargado: "Done, the example is loaded. Use Clear to start from scratch.",
+      bDesc: "Download", fDocx: "Word (.docx)", fDocxS: "To edit and keep as a version", fPdf: "PDF", fPdfS: "To share as is",
+      bCopiar: "Copy text", bCopiado: "Copied", bLimpiar: "Clear",
+      cPregunta: "Delete everything you wrote?", cSi: "Yes, delete", cNo: "Cancel",
+      borrado: "Done, the matrix is blank again.", ok: "Done, your download was saved.",
+      eNoDocx: "The Word file couldn’t be prepared. Check your connection or download the PDF.",
+      eNoPdf: "The PDF couldn’t be generated. Check your connection or use Copy text.",
+      eCopiar: "Your browser won’t copy automatically.",
+      docEtiqueta: "SEGMENT PRIORITIZATION", docTitulo: "Segment prioritization", docAutor: "Author", docVersion: "Version",
+      docCriterios: "Criteria", docRanking: "Ranking", docPos: "#", docPond: "Weighting", si: "Yes (weight from 1 to 3)", no: "No (all criteria count the same)",
+      docSinRank: "Not scored", archivo: "segment-prioritization",
+      crit: {
+        intensidad: ["Problem intensity", "How much the problem hurts this segment.", "0 = a minor annoyance", "5 = costs them money, critical time or their job"],
+        frecuencia: ["Frequency", "How often they experience the problem.", "0 = almost never happens", "5 = happens every day"],
+        acceso: ["Ease of access", "How easy it is to reach these people to talk with them.", "0 = we don’t know how to reach them", "5 = we can talk with them this week"],
+        pago: ["Willingness to pay", "How likely they, or someone, are to pay to solve it.", "0 = wouldn’t pay and has no budget", "5 = already pays for something similar or has budget"]
+      },
+      critCorto: { intensidad: "Intensity", frecuencia: "Frequency", acceso: "Access", pago: "Pay" }
+    }
+  };
+  var DEF = ["intensidad", "frecuencia", "acceso", "pago"];
+
+  var EJ = {
+    es: ["Kams de cuentas institucionales (hospitales y clínicas privadas)", "Kams de aseguradoras e instituciones públicas", "Visitadores médicos", "Gerentes de acceso al mercado"],
+    en: ["KAMs for institutional accounts (private hospitals and clinics)", "KAMs for insurers and public institutions", "Medical sales reps", "Market access managers"],
+    s: [[5, 4, 4, 4], [5, 3, 3, 4], [3, 5, 5, 2], [4, 2, 2, 5]],
+    nombre: { es: "Insights para Kams", en: "Insights for KAMs" }, autor: { es: "Ejemplo del taller", en: "Workshop example" }
+  };
+
+  /* ---------- estado ---------- */
+  var sec = 0;
+  function uid(p) { sec++; return p + Date.now().toString(36) + sec; }
+  function critDef() { return DEF.map(function (k) { return { id: "c_" + k, key: k, name: null, w: 1 }; }); }
+  function segVacio() { return { id: uid("s"), name: "", s: {} }; }
+  function nuevo() { return { lang: "es", nombre: "", autor: "", pond: false, crit: critDef(), seg: [segVacio(), segVacio(), segVacio()] }; }
+  var S = nuevo();
+  try {
+    var g = JSON.parse(localStorage.getItem(CLAVE) || "null");
+    if (g && Array.isArray(g.crit) && Array.isArray(g.seg) && g.crit.length) {
+      S.lang = g.lang === "en" ? "en" : "es"; S.nombre = String(g.nombre || ""); S.autor = String(g.autor || ""); S.pond = !!g.pond;
+      S.crit = g.crit.map(function (c) { return { id: String(c.id), key: DEF.indexOf(c.key) >= 0 ? c.key : null, name: c.name == null ? null : String(c.name), w: [1, 2, 3].indexOf(c.w) >= 0 ? c.w : 1 }; });
+      S.seg = g.seg.map(function (s) { var o = { id: String(s.id), name: String(s.name || ""), s: {} }; Object.keys(s.s || {}).forEach(function (k) { var v = s.s[k]; if (v !== "" && v != null && v >= 0 && v <= 5) o.s[k] = Number(v); }); return o; });
+      if (!S.seg.length) S.seg = [segVacio()];
+    } else if (g && (g.lang === "en" || g.lang === "es")) S.lang = g.lang;
+  } catch (e) {}
+  function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(S)); } catch (e) {} guardarIni(); }
+
+  function t(k) { return T[S.lang][k]; }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function lleno(v) { return !!(v && String(v).trim()); }
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* nombre y autor compartidos entre herramientas */
+  var CLAVE_INI = "cdw-iniciativa";
+  function leerIni() { try { var i = JSON.parse(localStorage.getItem(CLAVE_INI) || "null"); if (i && typeof i === "object") { S.nombre = String(i.nombre || ""); S.autor = String(i.autor || ""); return true; } } catch (e) {} return false; }
+  function guardarIni() { try { localStorage.setItem(CLAVE_INI, JSON.stringify({ nombre: S.nombre, autor: S.autor })); } catch (e) {} }
+  if (!leerIni() && (S.nombre || S.autor)) guardarIni();
+  window.addEventListener("storage", function (e) {
+    if (e.key !== CLAVE_INI) return;
+    leerIni(); $("m-nombre").value = S.nombre; $("m-autor").value = S.autor;
+  });
+
+  function critNombre(c) { return c.name != null ? c.name : (c.key ? t("crit")[c.key][0] : ""); }
+  function critMostrar(c) { var n = critNombre(c); return lleno(n) ? n.trim() : t("phCrit"); }
+  function critInfo(c) { return c.key && c.name == null ? t("crit")[c.key] : null; }
+  function peso(c) { return S.pond ? c.w : 1; }
+  function maximo() { return S.crit.reduce(function (a, c) { return a + 5 * peso(c); }, 0); }
+  function evaluado(s) { return S.crit.every(function (c) { return typeof s.s[c.id] === "number"; }); }
+  function faltan(s) { return S.crit.filter(function (c) { return typeof s.s[c.id] !== "number"; }).length; }
+  function total(s) { return S.crit.reduce(function (a, c) { return a + (typeof s.s[c.id] === "number" ? s.s[c.id] * peso(c) : 0); }, 0); }
+  function segNombre(s) { return lleno(s.name) ? s.name.trim() : t("segSin"); }
+
+  /* ranking: evaluados de mayor a menor (estable), luego sin evaluar en su orden */
+  function ranking() {
+    var ev = [], inc = [];
+    S.seg.forEach(function (s, i) { (evaluado(s) ? ev : inc).push({ s: s, i: i, tot: total(s) }); });
+    ev.sort(function (a, b) { return b.tot - a.tot || a.i - b.i; });
+    ev.forEach(function (r, j) {
+      r.pos = j && ev[j - 1].tot === r.tot ? ev[j - 1].pos : j + 1;
+    });
+    ev.forEach(function (r) { r.empate = ev.filter(function (o) { return o.tot === r.tot; }).length > 1; });
+    inc.forEach(function (r) { r.pos = null; });
+    return ev.concat(inc);
+  }
+
+  /* ---------- render de la matriz ---------- */
+  var tabla = $("matriz");
+  function opciones(v) {
+    var o = '<option value=""' + (typeof v !== "number" ? " selected" : "") + ">—</option>";
+    for (var i = 0; i <= 5; i++) o += '<option value="' + i + '"' + (v === i ? " selected" : "") + ">" + i + "</option>";
+    return o;
+  }
+  function renderTabla() {
+    var R = ranking(), max = maximo(), h = "";
+    h += '<thead><tr><th class="c-seg" scope="col"><span class="lbl-col">' + esc(t("colSeg")) + '</span></th><th class="c-tot" scope="col"><span class="lbl-col">' + esc(t("colTot")) + "</span></th>";
+    S.crit.forEach(function (c) {
+      var info = critInfo(c);
+      h += '<th scope="col"><div class="ch">' +
+        '<textarea rows="1" data-crit="' + c.id + '" placeholder="' + esc(t("phCrit")) + '" aria-label="' + esc(t("phCrit")) + '">' + esc(critNombre(c)) + "</textarea>" +
+        (info ? '<button type="button" class="ico" data-info="' + c.id + '" aria-label="' + esc(t("info")) + ': ' + esc(critMostrar(c)) + '">' + ICO_INFO + "</button>" : "") +
+        (S.crit.length > 1 ? '<button type="button" class="ico x" data-qcrit="' + c.id + '" aria-label="' + esc(t("quitarCrit").replace("{c}", critMostrar(c))) + '">' + ICO_X + "</button>" : "") +
+        "</div>" +
+        (S.pond ? '<label class="peso">' + esc(t("peso")) + ' <select data-peso="' + c.id + '">' + [1, 2, 3].map(function (w) { return '<option value="' + w + '"' + (c.w === w ? " selected" : "") + ">" + esc(t("pesos")[w]) + "</option>"; }).join("") + "</select></label>" : "") +
+        "</th>";
+    });
+    h += '<th class="c-x" scope="col"><span class="lbl-col" aria-hidden="true"></span></th></tr></thead><tbody>';
+    R.forEach(function (r) {
+      var s = r.s, top = r.pos === 1;
+      var tag = top ? (r.empate ? t("empate1") : t("prioritario")) : (r.pos && r.empate ? t("empate") : (r.pos ? "" : t("sinEval")));
+      h += '<tr data-id="' + s.id + '"' + (top ? ' class="lider"' : "") + ">";
+      h += '<td class="c-seg"><div class="fila"><span class="rank' + (r.pos ? "" : " na") + '" aria-hidden="true">' + (r.pos || "–") + "</span>" +
+        '<div class="nseg"><textarea rows="1" data-seg="' + s.id + '" placeholder="' + esc(t("phSeg")) + '" aria-label="' + esc(t("phSeg")) + '">' + esc(s.name) + '</textarea><span class="tag">' + esc(tag) + "</span></div></div></td>";
+      h += '<td class="c-tot">' + (r.pos ? '<span class="tot"><b>' + r.tot + "</b> <span>" + esc(t("de")) + " " + max + "</span></span>" : '<span class="tot na">' + esc(t("faltan").replace("{n}", faltan(s))) + "</span>") + "</td>";
+      S.crit.forEach(function (c) {
+        var v = s.s[c.id];
+        h += '<td><select data-cell="' + s.id + "|" + c.id + '"' + (typeof v === "number" ? "" : ' class="vacio"') + ' aria-label="' + esc(t("celda").replace("{s}", segNombre(s)).replace("{c}", critMostrar(c))) + '">' + opciones(v) + "</select></td>";
+      });
+      h += '<td class="c-x">' + (S.seg.length > 1 ? '<button type="button" class="ico x" data-qseg="' + s.id + '" aria-label="' + esc(t("quitarSeg").replace("{s}", segNombre(s))) + '">' + ICO_X + "</button>" : "") + "</td></tr>";
+    });
+    tabla.innerHTML = h + "</tbody>";
+    tabla.querySelectorAll("textarea").forEach(alto);
+    $("b-crit").disabled = S.crit.length >= MAX_CRIT;
+    $("b-seg").disabled = S.seg.length >= MAX_SEG;
+    var nEv = S.seg.filter(evaluado).length;
+    $("nota").textContent = nEv < S.seg.length ? t("notaInc") : "";
+    $("prog").textContent = t("prog").replace("{a}", nEv).replace("{b}", S.seg.length);
+  }
+
+  /* re-render con animación FLIP y conservando el foco */
+  function rerender(focoSel) {
+    var antes = {};
+    tabla.querySelectorAll("tbody tr").forEach(function (tr) { antes[tr.getAttribute("data-id")] = tr.getBoundingClientRect().top; });
+    renderTabla();
+    var reducir = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reducir) tabla.querySelectorAll("tbody tr").forEach(function (tr) {
+      var a = antes[tr.getAttribute("data-id")]; if (a == null) return;
+      var d = a - tr.getBoundingClientRect().top; if (!d) return;
+      tr.style.transition = "none"; tr.style.transform = "translateY(" + d + "px)";
+      requestAnimationFrame(function () { requestAnimationFrame(function () { tr.style.transition = "transform .35s ease"; tr.style.transform = ""; }); });
+    });
+    if (focoSel) { var el = tabla.querySelector(focoSel); if (el) el.focus({ preventScroll: true }); }
+  }
+
+  tabla.addEventListener("change", function (e) {
+    var el = e.target;
+    if (el.hasAttribute("data-cell")) {
+      var p = el.getAttribute("data-cell").split("|"), s = S.seg.find(function (x) { return x.id === p[0]; });
+      if (el.value === "") delete s.s[p[1]]; else s.s[p[1]] = Number(el.value);
+      guardar(); rerender('[data-cell="' + p[0] + "|" + p[1] + '"]');
+    } else if (el.hasAttribute("data-peso")) {
+      var c = S.crit.find(function (x) { return x.id === el.getAttribute("data-peso"); });
+      c.w = Number(el.value); guardar(); rerender('[data-peso="' + c.id + '"]');
+    }
+  });
+  function alto(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + 2 + "px"; }
+  window.addEventListener("resize", function () { tabla.querySelectorAll("textarea").forEach(alto); });
+  tabla.addEventListener("input", function (e) {
+    var el = e.target;
+    if (el.tagName === "TEXTAREA") { if (/\n/.test(el.value)) el.value = el.value.replace(/\s*\n\s*/g, " "); alto(el); }
+    if (el.hasAttribute("data-seg")) { S.seg.find(function (x) { return x.id === el.getAttribute("data-seg"); }).name = el.value; guardar(); }
+    else if (el.hasAttribute("data-crit")) {
+      var c = S.crit.find(function (x) { return x.id === el.getAttribute("data-crit"); });
+      c.name = el.value;
+      if (c.key && el.value === t("crit")[c.key][0]) c.name = null;
+      guardar();
+      var ib = tabla.querySelector('[data-info="' + c.id + '"]'); if (ib) ib.hidden = c.name != null;
+    }
+  });
+  tabla.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target.matches("textarea")) { e.preventDefault(); e.target.blur(); }
+  });
+  tabla.addEventListener("click", function (e) {
+    var b;
+    if ((b = e.target.closest("[data-info]"))) { mostrarPop(b); return; }
+    if ((b = e.target.closest("[data-qcrit]"))) {
+      var id = b.getAttribute("data-qcrit");
+      S.crit = S.crit.filter(function (c) { return c.id !== id; });
+      S.seg.forEach(function (s) { delete s.s[id]; });
+      guardar(); cerrarPop(); rerender(); return;
+    }
+    if ((b = e.target.closest("[data-qseg]"))) {
+      var sid = b.getAttribute("data-qseg");
+      S.seg = S.seg.filter(function (s) { return s.id !== sid; });
+      guardar(); rerender();
+    }
+  });
+  $("b-crit").addEventListener("click", function () {
+    if (S.crit.length >= MAX_CRIT) return;
+    var c = { id: uid("c"), key: null, name: "", w: 1 };
+    S.crit.push(c); guardar(); rerender('[data-crit="' + c.id + '"]');
+    var w = tabla.closest(".wrap"); w.scrollLeft = w.scrollWidth;
+  });
+  $("b-seg").addEventListener("click", function () {
+    if (S.seg.length >= MAX_SEG) return;
+    var s = segVacio(); S.seg.push(s); guardar(); rerender('[data-seg="' + s.id + '"]');
+  });
+  $("pond").addEventListener("change", function (e) { S.pond = e.target.checked; guardar(); rerender(); });
+
+  /* ---------- popover de ayuda ---------- */
+  var pop = $("pop"), popDe = null, popT = 0;
+  function mostrarPop(b) {
+    if (popDe === b && !pop.hidden) { cerrarPop(); return; }
+    var c = S.crit.find(function (x) { return x.id === b.getAttribute("data-info"); }), inf = critInfo(c); if (!inf) return;
+    pop.innerHTML = "<b>" + esc(inf[0]) + "</b><p>" + esc(inf[1]) + "</p><p>" + esc(inf[2]) + "</p><p>" + esc(inf[3]) + "</p>";
+    pop.hidden = false; popDe = b; popT = Date.now();
+    var r = b.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+    var x = Math.min(Math.max(8, r.left + r.width / 2 - pw / 2), window.innerWidth - pw - 8);
+    var y = r.bottom + 8; if (y + ph > window.innerHeight - 90) y = r.top - ph - 8;
+    pop.style.left = x + "px"; pop.style.top = y + "px";
+  }
+  function cerrarPop() { pop.hidden = true; popDe = null; }
+  document.addEventListener("click", function (e) { if (!pop.hidden && !e.target.closest("[data-info]") && !e.target.closest("#pop")) cerrarPop(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !pop.hidden) { var b = popDe; cerrarPop(); if (b) b.focus(); } });
+  window.addEventListener("scroll", function () { if (!pop.hidden && Date.now() - popT > 300) cerrarPop(); }, true);
+  window.addEventListener("resize", cerrarPop);
+
+  /* ---------- ejemplo ---------- */
+  function renderEjemplo() {
+    var corto = t("critCorto"), filas = EJ[S.lang].map(function (n, i) { return { n: n, s: EJ.s[i], tot: EJ.s[i].reduce(function (a, b) { return a + b; }, 0) }; });
+    var h = "<thead><tr><th>" + esc(t("colSeg")) + "</th>" + DEF.map(function (k) { return '<th class="n">' + esc(corto[k]) + "</th>"; }).join("") + '<th class="n">' + esc(t("colTot")) + "</th></tr></thead><tbody>";
+    h += filas.map(function (f) { return "<tr><td>" + esc(f.n) + "</td>" + f.s.map(function (v) { return '<td class="n">' + v + "</td>"; }).join("") + '<td class="n">' + f.tot + "</td></tr>"; }).join("");
+    $("ej-tab").innerHTML = h + "</tbody>";
+  }
+  function hayDatos() { return S.seg.some(function (s) { return lleno(s.name) || Object.keys(s.s).length; }) || S.crit.some(function (c) { return !c.key || c.name != null; }) || S.crit.length !== DEF.length; }
+  function cargarEjemplo() {
+    var lang = S.lang, nom = S.nombre, aut = S.autor; S = nuevo(); S.lang = lang;
+    S.nombre = lleno(nom) ? nom : EJ.nombre[lang]; S.autor = lleno(aut) ? aut : EJ.autor[lang];
+    S.seg = EJ[lang].map(function (n, i) { var s = segVacio(); s.name = n; DEF.forEach(function (k, j) { s.s["c_" + k] = EJ.s[i][j]; }); return s; });
+    guardar(); todo(); avisar(t("ejCargado"));
+  }
+  $("b-ej").addEventListener("click", function () { if (!hayDatos()) { cargarEjemplo(); return; } $("b-ej").hidden = true; $("ej-conf").hidden = false; $("b-ej-no").focus(); });
+  function cerrarEjConf() { $("ej-conf").hidden = true; $("b-ej").hidden = false; }
+  $("b-ej-si").addEventListener("click", function () { cerrarEjConf(); cargarEjemplo(); });
+  $("b-ej-no").addEventListener("click", function () { cerrarEjConf(); $("b-ej").focus(); });
+
+  /* ---------- textos ---------- */
+  function textos() {
+    document.documentElement.lang = S.lang;
+    $("l-es").setAttribute("aria-pressed", S.lang === "es"); $("l-en").setAttribute("aria-pressed", S.lang === "en");
+    $("idioma").setAttribute("aria-label", t("aIdioma"));
+    document.querySelectorAll("[data-t]").forEach(function (el) { var v = t(el.getAttribute("data-t")); if (typeof v === "string") el.textContent = v; });
+    $("h1").innerHTML = t("h1");
+    $("m-nombre").placeholder = t("pNombre"); $("m-autor").placeholder = t("pAutor");
+    $("m-nombre").value = S.nombre; $("m-autor").value = S.autor;
+    $("pond").checked = S.pond;
+  }
+  function todo() { cerrarPop(); textos(); renderTabla(); renderEjemplo(); }
+  ["nombre", "autor"].forEach(function (c) { $("m-" + c).addEventListener("input", function (e) { S[c] = e.target.value; guardar(); }); });
+  $("l-es").addEventListener("click", function () { if (S.lang !== "es") { S.lang = "es"; guardar(); todo(); } });
+  $("l-en").addEventListener("click", function () { if (S.lang !== "en") { S.lang = "en"; guardar(); todo(); } });
+
+  var avisoT;
+  function avisar(m) { var a = $("aviso"); a.textContent = m; clearTimeout(avisoT); avisoT = setTimeout(function () { a.textContent = ""; }, 4500); }
+
+  /* ---------- contenido exportable ---------- */
+  function ahora() { return new Date().toLocaleString(t("locale"), { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }); }
+  function datos() {
+    var R = ranking(), meta = [];
+    if (lleno(S.autor)) meta.push(t("docAutor") + ": " + S.autor.trim());
+    meta.push(t("docVersion") + ": " + ahora());
+    var crit = S.crit.map(function (c) { var inf = critInfo(c); return { nombre: critMostrar(c), w: c.w, desc: inf ? inf[1] + " " + inf[2] + " · " + inf[3] : "" }; });
+    var filas = R.map(function (r) {
+      return { pos: r.pos, empate: r.empate, nombre: segNombre(r.s), tot: r.pos ? r.tot : null,
+        vals: S.crit.map(function (c) { return typeof r.s.s[c.id] === "number" ? String(r.s.s[c.id]) : "—"; }) };
+    });
+    var top = filas.filter(function (f) { return f.pos === 1; });
+    return { titulo: lleno(S.nombre) ? S.nombre.trim() : t("docTitulo"), meta: meta, crit: crit, filas: filas, max: maximo(), top: top,
+      pond: S.pond ? t("si") : t("no") };
+  }
+  function posTxt(f) { return f.pos ? String(f.pos) : "–"; }
+  function nomTxt(f) { return f.nombre + (f.empate && f.pos !== 1 ? " (" + t("empate").toLowerCase() + ")" : ""); }
+  function totTxt(f, d) { return f.pos ? f.tot + " " + t("de") + " " + d.max : t("docSinRank"); }
+  function lineaTop(d) {
+    if (!d.top.length) return "";
+    return (d.top.length > 1 ? t("empate1") : t("prioritario")) + ": " + d.top.map(function (f) { return f.nombre; }).join(" / ");
+  }
+  function textoPlano() {
+    var d = datos();
+    var o = t("docEtiqueta") + "\n" + d.titulo + "\n" + d.meta.join(" · ") + "\n\n";
+    if (d.top.length) o += lineaTop(d) + "\n\n";
+    o += t("docPond") + ": " + d.pond + "\n\n";
+    o += t("docCriterios") + "\n" + d.crit.map(function (c) { return "- " + c.nombre + (S.pond ? " (" + t("peso").toLowerCase() + " " + c.w + ")" : ""); }).join("\n") + "\n\n";
+    o += t("docRanking") + "\n" + d.filas.map(function (f) {
+      return posTxt(f) + ". " + nomTxt(f) + " — " + totTxt(f, d) + " (" + d.crit.map(function (c, i) { return c.nombre + ": " + f.vals[i]; }).join(" · ") + ")";
+    }).join("\n") + "\n\n";
+    o += "Juan Carlos Franco Zafra · " + LINKEDIN + "\n";
+    return o;
+  }
+  function nombreArchivo(ext) {
+    var d = new Date(), z = function (n) { return String(n).padStart(2, "0"); };
+    var base = (lleno(S.nombre) ? S.nombre + "-" + t("archivo") : t("archivo")).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || t("archivo");
+    return base + "-" + d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + "-" + z(d.getHours()) + z(d.getMinutes()) + "." + ext;
+  }
+  function bajar(blob, nombre) {
+    var url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = nombre; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1500);
+  }
+
+  /* ---------- PDF (horizontal, para que quepa la matriz) ---------- */
+  function pdfLimpio(s) { return String(s).replace(/→/g, "->").replace(/[‘’]/g, "'").replace(/[“”«»]/g, '"').replace(/[–—]/g, "-"); }
+  function pdfBlob() {
+    var JS = window.jspdf && window.jspdf.jsPDF; if (!JS) throw new Error("jspdf");
+    var d = datos(), doc = new JS({ unit: "pt", format: "letter", orientation: "landscape" });
+    var PW = 792, PH = 612, M = 48, W = PW - M * 2, y = 48, BOT = PH - 48;
+    var NEGRO = [15, 20, 32], TXT = [57, 65, 79], GRIS = [92, 102, 117], TEAL = [15, 118, 110], AMBAR = [184, 122, 0];
+    function color(c) { doc.setTextColor(c[0], c[1], c[2]); }
+    function linea(txt, size, peso, c, x, lh, ancho) {
+      doc.setFont("helvetica", peso); doc.setFontSize(size); color(c);
+      doc.splitTextToSize(pdfLimpio(txt), ancho || (W - (x || 0))).forEach(function (l) { if (y + size > BOT) { doc.addPage(); y = 48; } doc.text(l, M + (x || 0), y + size * 0.8); y += size * (lh || 1.45); });
+    }
+    linea(t("docEtiqueta"), 8, "bold", TEAL, 0, 1.3); y += 3;
+    linea(d.titulo, 19, "bold", NEGRO, 0, 1.2); y += 2;
+    linea(d.meta.join("   ·   ") + "   ·   " + t("docPond") + ": " + d.pond, 9, "normal", GRIS, 0, 1.3); y += 6;
+    doc.setDrawColor(15, 20, 32); doc.setLineWidth(1); doc.line(M, y, M + W, y); y += 16;
+    if (d.top.length) { linea(lineaTop(d), 14, "bold", AMBAR, 0, 1.3); y += 10; }
+
+    /* tabla */
+    var nC = d.crit.length, wPos = 26, wTot = 70, wSeg = Math.min(230, W * 0.32), wC = (W - wPos - wSeg - wTot) / nC;
+    var cols = [wPos, wSeg].concat(d.crit.map(function () { return wC; })).concat([wTot]);
+    function fila(celdas, o) {
+      o = o || {};
+      doc.setFont("helvetica", o.bold ? "bold" : "normal"); doc.setFontSize(o.size || 9);
+      var lineas = celdas.map(function (c, i) { return doc.splitTextToSize(pdfLimpio(c), cols[i] - 8); });
+      var h = Math.max.apply(null, lineas.map(function (l) { return l.length; })) * (o.size || 9) * 1.3 + 10;
+      if (y + h > BOT) { doc.addPage(); y = 48; }
+      if (o.fondo) { doc.setFillColor(o.fondo[0], o.fondo[1], o.fondo[2]); doc.rect(M, y, W, h, "F"); }
+      var x = M;
+      lineas.forEach(function (ls, i) {
+        var c = (o.colores && o.colores[i]) || o.color || TXT; color(c);
+        doc.setFont("helvetica", (o.boldCols && o.boldCols[i]) || o.bold ? "bold" : "normal");
+        var centro = i >= 2 && i < cols.length - 1;
+        ls.forEach(function (l, j) { doc.text(l, centro ? x + cols[i] / 2 : x + 4, y + 5 + (o.size || 9) * 0.85 + j * (o.size || 9) * 1.3, centro ? { align: "center" } : undefined); });
+        x += cols[i];
+      });
+      y += h;
+      doc.setDrawColor(227, 230, 235); doc.setLineWidth(0.6); doc.line(M, y, M + W, y);
+    }
+    fila([t("docPos"), t("colSeg")].concat(d.crit.map(function (c) { return c.nombre + (S.pond ? " (x" + c.w + ")" : ""); })).concat([t("colTot")]), { bold: true, size: 8.5, color: NEGRO, fondo: [245, 246, 248] });
+    d.filas.forEach(function (f) {
+      var top = f.pos === 1;
+      fila([posTxt(f), nomTxt(f)].concat(f.vals).concat([totTxt(f, d)]), {
+        fondo: top ? [255, 243, 209] : null, colores: { 0: top ? AMBAR : NEGRO, 1: NEGRO }, boldCols: { 0: true, 1: top, [cols.length - 1]: true }
+      });
+    });
+    y += 18;
+    var conDesc = d.crit.filter(function (c) { return c.desc; });
+    if (conDesc.length) {
+      linea(t("docCriterios").toUpperCase(), 8, "bold", TEAL, 0, 1.3); y += 3;
+      conDesc.forEach(function (c) { linea(c.nombre + ": " + c.desc, 8.5, "normal", GRIS, 0, 1.4); });
+      y += 10;
+    }
+    linea("Juan Carlos Franco Zafra · " + LINKEDIN, 8.5, "normal", GRIS, 0, 1.35);
+    return doc.output("blob");
+  }
+
+  /* ---------- Word ---------- */
+  var DOCX_URL = "https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js", docxCarga = null;
+  function cargarDocx() {
+    if (window.docx) return Promise.resolve(window.docx);
+    if (!docxCarga) docxCarga = new Promise(function (ok, mal) {
+      var sc = document.createElement("script"); sc.src = DOCX_URL;
+      sc.onload = function () { window.docx ? ok(window.docx) : mal(); };
+      sc.onerror = function () { docxCarga = null; mal(); };
+      document.head.appendChild(sc);
+    });
+    return docxCarga;
+  }
+  async function docxBlob() {
+    var D = await cargarDocx(), d = datos(), ch = [];
+    function run(text, o) { return new D.TextRun(Object.assign({ text: text, font: "Calibri" }, o || {})); }
+    function par(runs, o) { return new D.Paragraph(Object.assign({ children: runs }, o || {})); }
+    function etiqueta(txt) { return par([run(txt.toUpperCase(), { bold: true, size: 16, color: "0F766E", characterSpacing: 20 })], { spacing: { before: 280, after: 100 } }); }
+    ch.push(par([run(t("docEtiqueta"), { bold: true, size: 16, color: "0F766E", characterSpacing: 20 })], { spacing: { after: 80 } }));
+    ch.push(par([run(d.titulo, { bold: true, size: 40, color: "0F1420" })], { spacing: { after: 80 } }));
+    ch.push(par([run(d.meta.join("   ·   "), { size: 18, color: "5C6675" })], { spacing: { after: 120 }, border: { bottom: { style: D.BorderStyle.SINGLE, size: 8, color: "0F1420", space: 8 } } }));
+    if (d.top.length) ch.push(par([run(lineaTop(d), { bold: true, size: 28, color: "B87A00" })], { spacing: { before: 200, after: 80 } }));
+    ch.push(par([run(t("docPond") + ": ", { bold: true, size: 20 }), run(d.pond, { size: 20, color: "39414F" })], { spacing: { after: 120 } }));
+
+    ch.push(etiqueta(t("docRanking")));
+    var borde = { style: D.BorderStyle.SINGLE, size: 4, color: "E3E6EB" }, bordes = { top: borde, bottom: borde, left: borde, right: borde };
+    var nC = d.crit.length, pPos = 6, pTot = 13, pSeg = 30, pC = (100 - pPos - pTot - pSeg) / nC;
+    function celda(txt, o, ancho, fondo, centro) {
+      return new D.TableCell({ width: { size: ancho, type: D.WidthType.PERCENTAGE }, borders: bordes, shading: fondo ? { fill: fondo, type: D.ShadingType.CLEAR, color: "auto" } : undefined,
+        margins: { top: 70, bottom: 70, left: 90, right: 90 }, children: [par([run(txt, Object.assign({ size: 19 }, o || {}))], centro ? { alignment: D.AlignmentType.CENTER } : {})] });
+    }
+    var filas = [new D.TableRow({ tableHeader: true, children: [celda(t("docPos"), { bold: true }, pPos, "F5F6F8"), celda(t("colSeg"), { bold: true }, pSeg, "F5F6F8")]
+      .concat(d.crit.map(function (c) { return celda(c.nombre + (S.pond ? " (x" + c.w + ")" : ""), { bold: true }, pC, "F5F6F8", true); }))
+      .concat([celda(t("colTot"), { bold: true }, pTot, "F5F6F8", true)]) })];
+    d.filas.forEach(function (f) {
+      var top = f.pos === 1, fondo = top ? "FFF3D1" : null;
+      filas.push(new D.TableRow({ children: [celda(posTxt(f), { bold: true, color: top ? "B87A00" : "0F1420" }, pPos, fondo), celda(nomTxt(f), { bold: top }, pSeg, fondo)]
+        .concat(f.vals.map(function (v) { return celda(v, { color: "39414F" }, pC, fondo, true); }))
+        .concat([celda(totTxt(f, d), { bold: true, color: f.pos ? (top ? "B87A00" : "0F1420") : "5C6675" }, pTot, fondo, true)]) }));
+    });
+    ch.push(new D.Table({ width: { size: 100, type: D.WidthType.PERCENTAGE }, rows: filas }));
+
+    var conDesc = d.crit.filter(function (c) { return c.desc; });
+    if (conDesc.length) {
+      ch.push(etiqueta(t("docCriterios")));
+      conDesc.forEach(function (c) { ch.push(par([run(c.nombre + ": ", { bold: true, size: 19 }), run(c.desc, { size: 19, color: "5C6675" })], { spacing: { after: 60 } })); });
+    }
+    ch.push(par([run("Juan Carlos Franco Zafra", { bold: true, size: 18, color: "0F1420" })], { spacing: { before: 480 }, border: { top: { style: D.BorderStyle.SINGLE, size: 4, color: "CCD2DB", space: 8 } } }));
+    ch.push(par([new D.ExternalHyperlink({ link: "https://www.linkedin.com/in/juancarlosfranco/", children: [run(LINKEDIN, { size: 18, color: "0F766E" })] })]));
+    var doc = new D.Document({ creator: "Juan Carlos Franco Zafra", title: d.titulo, styles: { default: { document: { run: { font: "Calibri" } } } },
+      sections: [{ properties: { page: { size: { orientation: D.PageOrientation.LANDSCAPE }, margin: { top: 1000, bottom: 1000, left: 1000, right: 1000 } } }, children: ch }] });
+    return D.Packer.toBlob(doc);
+  }
+
+  /* ---------- barra de acciones ---------- */
+  var menu = $("menu"), bDesc = $("b-desc");
+  function abrirMenu(si) { menu.hidden = !si; bDesc.setAttribute("aria-expanded", si); if (si) menu.querySelector("button").focus(); }
+  bDesc.addEventListener("click", function () { abrirMenu(menu.hidden); });
+  document.addEventListener("click", function (e) { if (!menu.hidden && !e.target.closest(".dd")) abrirMenu(false); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !menu.hidden) { abrirMenu(false); bDesc.focus(); } });
+  menu.addEventListener("click", async function (e) {
+    var b = e.target.closest("[data-fmt]"); if (!b) return;
+    abrirMenu(false);
+    var fmt = b.getAttribute("data-fmt");
+    try { if (fmt === "pdf") bajar(pdfBlob(), nombreArchivo("pdf")); else bajar(await docxBlob(), nombreArchivo("docx")); avisar(t("ok")); }
+    catch (err) { avisar(fmt === "pdf" ? t("eNoPdf") : t("eNoDocx")); }
+  });
+  $("b-copiar").addEventListener("click", function () {
+    var txt = textoPlano(), b = $("b-copiar");
+    function hecho() { b.textContent = t("bCopiado"); setTimeout(function () { b.textContent = t("bCopiar"); }, 1800); }
+    function fallback() {
+      var ta = document.createElement("textarea"); ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+      ta.remove(); ok ? hecho() : avisar(t("eCopiar"));
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(hecho, fallback); else fallback();
+  });
+  $("b-limpiar").addEventListener("click", function () { $("acc").hidden = true; $("conf").hidden = false; $("b-no").focus(); });
+  $("b-no").addEventListener("click", function () { $("conf").hidden = true; $("acc").hidden = false; $("b-limpiar").focus(); });
+  $("b-si").addEventListener("click", function () {
+    var lang = S.lang, nom = S.nombre, aut = S.autor; S = nuevo(); S.lang = lang; S.nombre = nom; S.autor = aut; guardar(); todo();
+    $("conf").hidden = true; $("acc").hidden = false; avisar(t("borrado"));
+  });
+
+  window.__cdw = { textoPlano: textoPlano };
+  todo();
+})();
+</script>
+</body>
+</html>

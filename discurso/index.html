@@ -1,0 +1,887 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Experimento de discurso · Juan Carlos Franco Zafra</title>
+<meta name="description" content="Planea tu experimento de discurso y genera los prompts para el guion de entrevista y para analizar los resultados.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<style>
+  :root{
+    color-scheme:dark;
+    --bg:#0F1420; --surface:#1A2233; --inset:#131a28; --surface-2:#252e42;
+    --text:#F2F4F8; --text-2:#c9cfda; --muted:#9AA3B2;
+    --rule:rgba(255,255,255,.06); --rule-strong:rgba(255,255,255,.14);
+    --yellow:#FFC53D; --on-yellow:#412402; --yellow-soft:rgba(255,197,61,.12);
+    --teal:#2DD4BF; --on-teal:#04342C; --teal-soft:rgba(45,212,191,.14);
+    --crit:#f0837b;
+    --sans:"Inter",-apple-system,"Segoe UI",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;padding-bottom:110px}
+  button,input,select,textarea{font:inherit;color:inherit}
+  a{color:var(--teal);text-decoration:none}
+  a:hover{text-decoration:underline}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:4px}
+
+  .shell{max-width:880px;margin:0 auto;padding:24px 24px 40px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:16px;margin-bottom:48px;border-bottom:1px solid var(--rule-strong)}
+  .top .nombre{font-weight:600;font-size:15px;color:var(--text)}
+  .top .nombre:hover{color:var(--teal);text-decoration:none}
+  .seg{display:inline-flex;border:1px solid var(--rule-strong);border-radius:8px;overflow:hidden}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;padding:7px 12px;cursor:pointer}
+  .seg button+button{border-left:1px solid var(--rule-strong)}
+  .seg button[aria-pressed="true"]{background:var(--surface-2);color:var(--text)}
+
+  .eyebrow{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin:0 0 14px}
+  h1{font-size:clamp(32px,5vw,48px);font-weight:700;line-height:1.12;letter-spacing:-.02em;margin:0 0 16px;max-width:22ch;text-wrap:balance}
+  h1 .hl{color:var(--yellow)}
+  .lead{font-size:18px;color:var(--text-2);max-width:62ch;margin:0}
+  .privacidad{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-2);margin:20px 0 0;padding:7px 12px;border:1px solid var(--rule-strong);border-radius:999px}
+  .privacidad svg{flex:none;color:var(--teal)}
+
+  .sec{margin-top:56px}
+  .sec-head{margin-bottom:18px}
+  .sec-n{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--teal)}
+  .sec h2{font-size:28px;font-weight:700;letter-spacing:-.015em;line-height:1.2;margin:4px 0 6px}
+  .sec-sub{font-size:15.5px;color:var(--muted);margin:0;max-width:66ch}
+
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:24px 26px}
+  .card + .card{margin-top:16px}
+  .campos{display:grid;gap:20px 18px;grid-template-columns:1fr 1fr}
+  .campo.full{grid-column:1/-1}
+  .campo label,.campo .lbl{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+  .campo .opc{font-weight:400;color:var(--muted)}
+  .campo input[type=text],.campo textarea,.campo select{width:100%;font-size:15.5px;color:var(--text);background:var(--inset);border:1px solid var(--rule-strong);border-radius:8px;padding:10px 12px}
+  .campo textarea{resize:vertical;min-height:68px;line-height:1.5;display:block}
+  .campo select{appearance:none;-webkit-appearance:none;background:var(--inset) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5l3 3 3-3' fill='none' stroke='%239AA3B2' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center;padding-right:32px;cursor:pointer}
+  .campo select option{background:var(--surface)}
+  input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
+  .campo input:focus,.campo textarea:focus,.campo select:focus{outline:none;border-color:var(--teal)}
+  .otro{margin-top:8px}
+  .seg2{display:inline-flex;border:1px solid var(--rule-strong);border-radius:8px;overflow:hidden;background:var(--inset)}
+  .seg2 button{appearance:none;border:0;background:transparent;color:var(--muted);font-size:15px;font-weight:500;padding:9px 18px;cursor:pointer}
+  .seg2 button+button{border-left:1px solid var(--rule-strong)}
+  .seg2 button[aria-pressed="true"]{background:var(--surface-2);color:var(--text)}
+
+  .metrica{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;font-size:16px;color:var(--text-2)}
+  .metrica input{width:76px!important;text-align:center;font-size:20px!important;font-weight:700;color:var(--yellow)!important;padding:8px 6px!important}
+  .metrica input::-webkit-outer-spin-button,.metrica input::-webkit-inner-spin-button{opacity:.5}
+  .err{font-size:13.5px;color:var(--crit);margin:6px 0 0}
+  .err:empty{display:none}
+
+  /* prompts */
+  .p-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px 20px;flex-wrap:wrap}
+  .p-head h3{font-size:20px;font-weight:600;margin:0 0 4px;line-height:1.3}
+  .p-head p{margin:0;font-size:14.5px;color:var(--muted);max-width:54ch}
+  .falta{font-size:13.5px;color:var(--muted);margin:12px 0 0}
+  .falta:empty{display:none}
+  .salida{margin-top:16px}
+  .salida textarea{width:100%;min-height:260px;font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--text-2);background:var(--inset);border:1px solid var(--rule-strong);border-radius:8px;padding:14px;resize:vertical}
+  .salida.viejo textarea{opacity:.45}
+  .salida-pie{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-top:10px}
+  .salida-pie .info{font-size:13.5px;color:var(--muted);margin:0}
+  .salida-pie .info.alerta{color:var(--yellow)}
+
+  /* ejemplo */
+  details.ej{margin-top:22px;border-top:1px solid var(--rule-strong);padding-top:16px}
+  details.ej summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:600;color:var(--teal)}
+  details.ej summary::-webkit-details-marker{display:none}
+  details.ej summary::before{content:"";border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .15s}
+  details.ej[open] summary::before{transform:rotate(90deg)}
+  .ej-panel{margin-top:12px;background:var(--inset);border:1px solid var(--rule);border-radius:10px;padding:16px 18px}
+  .ej-caso{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  .ej-panel dl{margin:0;display:grid;grid-template-columns:190px 1fr;gap:8px 16px;font-size:14.5px}
+  .ej-panel dt{color:var(--muted)}
+  .ej-panel dd{margin:0;color:var(--text-2)}
+  .ej-pie{display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+
+  /* botones y barra */
+  .btn{appearance:none;font-weight:600;font-size:14.5px;padding:10px 18px;border-radius:8px;background:var(--yellow);color:var(--on-yellow);border:0;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:8px}
+  .btn:hover{filter:brightness(.95)}
+  .btn-sec{appearance:none;background:transparent;color:var(--teal);border:1px solid var(--teal);font-weight:500;font-size:14px;padding:9px 16px;border-radius:8px;cursor:pointer;white-space:nowrap}
+  .btn-sec:hover{background:var(--teal-soft)}
+  .btn-sec:disabled{opacity:.4;cursor:not-allowed;background:transparent}
+  .btn-lnk{appearance:none;background:transparent;border:0;color:var(--muted);font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;cursor:pointer;padding:9px 6px;white-space:nowrap}
+  .btn-lnk:hover{color:var(--text)}
+  .btn-lnk.peligro{color:var(--crit)}
+  .barra{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(15,20,32,.96);backdrop-filter:blur(6px);border-top:1px solid var(--rule-strong);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .barra-in{max-width:880px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:10px 20px;flex-wrap:wrap}
+  .prog{flex:1;min-width:200px;font-size:14.5px;font-weight:600}
+  .acc{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .dd{position:relative}
+  .menu{position:absolute;bottom:calc(100% + 8px);left:0;z-index:40;min-width:270px;background:var(--surface);border:1px solid var(--rule-strong);border-radius:10px;padding:6px;display:grid;gap:2px}
+  .menu button{appearance:none;border:0;background:transparent;text-align:left;padding:9px 12px;border-radius:7px;display:grid;gap:1px;cursor:pointer}
+  .menu button:hover,.menu button:focus-visible{background:var(--surface-2);outline:none}
+  .menu b{font-size:14px;font-weight:600}
+  .menu span{font-size:12.5px;color:var(--muted)}
+  #b-desc svg{transition:transform .15s}
+  #b-desc[aria-expanded="true"] svg{transform:rotate(180deg)}
+  .conf{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text-2)}
+  .aviso{flex-basis:100%;font-size:13.5px;color:var(--text-2);margin:-2px 0 0}
+  .aviso:empty{display:none}
+
+  footer{margin-top:72px;padding-top:20px;border-top:1px solid var(--rule-strong);display:flex;gap:8px 18px;flex-wrap:wrap;align-items:baseline}
+  footer .fn{font-weight:600;font-size:15px;margin:0}
+  footer a{font-size:14px}
+
+  @media (max-width:720px){
+    .shell{padding:18px 16px 32px}
+    .top{margin-bottom:36px}
+    .campos{grid-template-columns:1fr}
+    .card{padding:20px 16px}
+    .barra-in{padding:10px 16px;gap:8px 12px}
+    .prog{flex-basis:100%;min-width:0}
+    .lead{font-size:16.5px}
+    .ej-panel dl{grid-template-columns:1fr;gap:2px}
+    .ej-panel dd{margin-bottom:8px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <a class="nombre" href="https://www.linkedin.com/in/juancarlosfranco/" target="_blank" rel="noopener">Juan Carlos Franco Zafra</a>
+    <div class="seg" role="group" id="idioma">
+      <button type="button" id="l-es" lang="es" aria-pressed="true">Español</button>
+      <button type="button" id="l-en" lang="en" aria-pressed="false">English</button>
+    </div>
+  </header>
+
+  <p class="eyebrow" data-t="eyebrow"></p>
+  <h1 id="h1"></h1>
+  <p class="lead" data-t="lead"></p>
+  <p class="privacidad"><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span data-t="privacidad"></span></p>
+
+  <section class="sec" aria-labelledby="s1-t">
+    <div class="sec-head">
+      <span class="sec-n" data-t="s1n"></span>
+      <h2 id="s1-t" data-t="s1"></h2>
+      <p class="sec-sub" data-t="s1sub"></p>
+    </div>
+    <div class="card">
+      <div class="campos">
+        <div class="campo"><label for="m-nombre" data-t="mNombre"></label><input id="m-nombre" type="text" autocomplete="off"></div>
+        <div class="campo"><label for="m-autor" data-t="mAutor"></label><input id="m-autor" type="text" autocomplete="off"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="s2-t">
+    <div class="sec-head">
+      <span class="sec-n" data-t="s2n"></span>
+      <h2 id="s2-t" data-t="s2"></h2>
+      <p class="sec-sub" data-t="s2sub"></p>
+    </div>
+    <div class="card">
+      <div class="campos">
+        <div class="campo full"><label for="f-objetivo" data-t="lObjetivo"></label><textarea id="f-objetivo" data-f="objetivo" rows="2"></textarea></div>
+        <div class="campo full"><label for="f-cliente" data-t="lCliente"></label><textarea id="f-cliente" data-f="cliente" rows="2"></textarea></div>
+        <div class="campo full"><label for="f-problema" data-t="lProblema"></label><textarea id="f-problema" data-f="problema" rows="3"></textarea></div>
+        <div class="campo full"><label for="f-propuesta" data-t="lPropuesta"></label><textarea id="f-propuesta" data-f="propuesta" rows="3"></textarea></div>
+        <div class="campo">
+          <label for="f-canal" data-t="lCanal"></label>
+          <select id="f-canal"></select>
+          <input class="otro" id="f-canalOtro" data-f="canalOtro" type="text" autocomplete="off" hidden>
+        </div>
+        <div class="campo">
+          <span class="lbl" id="l-trato" data-t="lTrato"></span>
+          <div class="seg2" role="group" aria-labelledby="l-trato">
+            <button type="button" id="tr-tu" aria-pressed="false"></button>
+            <button type="button" id="tr-usted" aria-pressed="true"></button>
+          </div>
+        </div>
+        <div class="campo full">
+          <label for="f-evid" data-t="lEvid"></label>
+          <select id="f-evid"></select>
+          <input class="otro" id="f-evidOtro" data-f="evidOtro" type="text" autocomplete="off" hidden>
+        </div>
+        <div class="campo full">
+          <span class="lbl" id="l-metrica" data-t="lMetrica"></span>
+          <div class="metrica" role="group" aria-labelledby="l-metrica">
+            <input type="number" id="f-x" min="0" max="999" inputmode="numeric" data-ta="aX">
+            <span data-t="de"></span>
+            <input type="number" id="f-y" min="1" max="999" inputmode="numeric" data-ta="aY">
+            <span data-t="metricaTxt"></span>
+          </div>
+          <p class="err" id="err-metrica" role="alert"></p>
+        </div>
+                <div class="campo"><label for="f-duracion" data-t="lDuracion"></label><input id="f-duracion" data-f="duracion" type="text" autocomplete="off"></div>
+        <div class="campo"><label for="f-recursos" data-t="lRecursos"></label><textarea id="f-recursos" data-f="recursos" rows="2"></textarea></div>
+      </div>
+
+      <details class="ej" id="ej">
+        <summary data-t="verEj"></summary>
+        <div class="ej-panel">
+          <p class="ej-caso" data-t="ejCaso"></p>
+          <dl id="ej-dl"></dl>
+          <div class="ej-pie">
+            <button type="button" class="btn-sec" id="b-ej" data-t="usarEj"></button>
+            <span class="conf" id="ej-conf" hidden>
+              <span data-t="ejPregunta"></span>
+              <button type="button" class="btn-lnk peligro" id="b-ej-si" data-t="ejSi"></button>
+              <button type="button" class="btn-lnk" id="b-ej-no" data-t="cNo"></button>
+            </span>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="s3-t">
+    <div class="sec-head">
+      <span class="sec-n" data-t="s3n"></span>
+      <h2 id="s3-t" data-t="s3"></h2>
+      <p class="sec-sub" data-t="s3sub"></p>
+    </div>
+
+    <div class="card" id="c-ent">
+      <div class="p-head">
+        <div><h3 data-t="pEntT"></h3><p data-t="pEntD"></p></div>
+        <button type="button" class="btn-sec" id="g-ent" data-t="gEnt"></button>
+      </div>
+      <p class="falta" id="falta-ent"></p>
+      <div class="salida" id="o-ent" hidden>
+        <textarea readonly id="t-ent" data-ta="aPromptEnt"></textarea>
+        <div class="salida-pie"><p class="info" id="i-ent"></p><button type="button" class="btn-sec" id="c-ent-b" data-t="copiarP"></button></div>
+      </div>
+    </div>
+
+    <div class="card" id="c-ana">
+      <div class="p-head">
+        <div><h3 data-t="pAnaT"></h3><p data-t="pAnaD"></p></div>
+        <button type="button" class="btn-sec" id="g-ana" data-t="gAna"></button>
+      </div>
+      <p class="falta" id="falta-ana"></p>
+      <div class="salida" id="o-ana" hidden>
+        <textarea readonly id="t-ana" data-ta="aPromptAna"></textarea>
+        <div class="salida-pie"><p class="info" id="i-ana"></p><button type="button" class="btn-sec" id="c-ana-b" data-t="copiarP"></button></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p class="fn">Juan Carlos Franco Zafra</p>
+    <a href="https://www.linkedin.com/in/juancarlosfranco/" target="_blank" rel="noopener">LinkedIn</a>
+  </footer>
+</div>
+
+<div class="barra">
+  <div class="barra-in">
+    <div class="prog" id="prog"></div>
+    <div class="acc" id="acc">
+      <div class="dd">
+        <button class="btn" type="button" id="b-desc" aria-haspopup="true" aria-expanded="false" aria-controls="menu"><span data-t="bDesc"></span><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 6.5l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+        <div class="menu" id="menu" role="menu" hidden>
+          <button type="button" role="menuitem" data-fmt="docx"><b data-t="fDocx"></b><span data-t="fDocxS"></span></button>
+          <button type="button" role="menuitem" data-fmt="pdf"><b data-t="fPdf"></b><span data-t="fPdfS"></span></button>
+        </div>
+      </div>
+      <button class="btn-lnk" type="button" id="b-copiar" data-t="bCopiar"></button>
+      <button class="btn-lnk" type="button" id="b-limpiar" data-t="bLimpiar"></button>
+    </div>
+    <div class="conf" id="conf" hidden>
+      <span data-t="cPregunta"></span>
+      <button class="btn-lnk peligro" type="button" id="b-si" data-t="cSi"></button>
+      <button class="btn-lnk" type="button" id="b-no" data-t="cNo"></button>
+    </div>
+    <p class="aviso" id="aviso" role="status"></p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var CLAVE = "cdw-discurso-v1";
+  var LINKEDIN = "linkedin.com/in/juancarlosfranco";
+  var CANALES = ["presencial", "llamada", "videollamada", "whatsapp", "otro"];
+  var REQ = ["objetivo", "cliente", "problema", "propuesta", "canal", "evid", "metrica", "duracion", "recursos"];
+  var EVIDS = ["contacto", "cotizacion", "reserva", "pago", "otro"];
+
+  var T = {
+    es: {
+      locale: "es-CO", aIdioma: "Idioma",
+      eyebrow: "Customer Discovery · Experimento de discurso",
+      h1: 'Presenta tu propuesta de valor y <span class="hl">pide una señal real</span>',
+      lead: "Un experimento de discurso pone a prueba tu propuesta de valor: confirmas el problema, presentas la propuesta y pides una evidencia concreta de interés. Define el plan y la herramienta te arma los prompts para el guion de entrevista y para analizar lo que encuentres.",
+      privacidad: "Lo que escribas se guarda solo en este navegador. No viaja a ningún lado y nadie más lo ve.",
+      s1n: "Paso 1", s1: "Identifica tu iniciativa", s1sub: "Estos datos encabezan el documento que vas a descargar.",
+      mNombre: "Nombre de la iniciativa", pNombre: "Ej. Insights para Kams", mAutor: "Autor o equipo", pAutor: "Persona o equipo",
+      s2n: "Paso 2", s2: "Planea el experimento", s2sub: "Define todo antes de entrevistar, incluida la evidencia que vas a pedir y la métrica meta: así sabrás si el resultado valida o no tu propuesta.",
+      lObjetivo: "Objetivo del experimento", objDef: "Validar la hipótesis de propuesta de valor",
+      lCliente: "Hipótesis de segmento de cliente o usuario", pCliente: "Quién es, de forma específica: dónde lo encontrarías",
+      lProblema: "Hipótesis de problema", pProblema: "Qué problema creemos que tiene, dicho desde su experiencia",
+      lPropuesta: "Hipótesis de propuesta de valor", pPropuesta: "Lo contrario al problema: cómo se ve su situación resuelta",
+      lEvid: "Evidencia a obtener", evidPh: "Elige la evidencia", pEvidOtro: "¿Cuál?",
+      evids: { contacto: "Datos de contacto", cotizacion: "Solicitud de cotización", reserva: "Reserva", pago: "Pago", otro: "Otro" },
+      lCanal: "Canal", canalPh: "Elige un canal",
+      canales: { presencial: "Presencial", llamada: "Llamada", videollamada: "Videollamada", whatsapp: "WhatsApp o chat", otro: "Otro" },
+      pCanalOtro: "¿Cuál?",
+      lTrato: "Trato en la entrevista", tu: "Tú", usted: "Usted",
+      lMetrica: "Métrica meta", de: "de", metricaTxt: "entrevistados entregaron la evidencia", aX: "Entrevistados que entregaron la evidencia", aY: "Total de entrevistados",
+      errMetrica: "El primer número no puede ser mayor que el total de entrevistados.",
+      lDuracion: "Duración", pDuracion: "Ej. 2 semanas", lRecursos: "Recursos", pRecursos: "Ej. guion, contactos, Teams, plantilla de notas",
+      verEj: "Ver ejemplo", ejCaso: "Caso: Kam de un laboratorio farmacéutico",
+      usarEj: "Usar este ejemplo", ejPregunta: "¿Reemplazar lo que escribiste?", ejSi: "Sí, reemplazar",
+      ejCargado: "Listo, el ejemplo quedó cargado. Usa Limpiar para empezar de cero.",
+      s3n: "Paso 3", s3: "Genera tus prompts", s3sub: "Cópialos y pégalos en Copilot, ChatGPT o Claude.",
+      pEntT: "Prompt para el guion de entrevista", pEntD: "Úsalo antes de entrevistar. Te entrega un guion a la medida de tu experimento.",
+      pAnaT: "Prompt para analizar las entrevistas", pAnaD: "Úsalo después de entrevistar. Pega tus notas al final y te entrega aprendizajes sobre la propuesta, la métrica resultante y el siguiente paso.",
+      gEnt: "Generar prompt para entrevista", gAna: "Generar prompt de análisis",
+      falta: "Para generarlo completa: {c}.", copiarP: "Copiar prompt", copiado: "Copiado",
+      listoEnt: "Listo para pegar.", listoAna: "Listo para pegar. Si tus notas son muy largas, adjúntalas como archivo.",
+      viejo: "Cambiaste la planeación. Genera el prompt de nuevo.",
+      aPromptEnt: "Prompt para el guion de entrevista", aPromptAna: "Prompt para analizar las entrevistas",
+      nombresReq: { objetivo: "objetivo", cliente: "hipótesis de cliente o usuario", problema: "hipótesis de problema", propuesta: "hipótesis de propuesta de valor", canal: "canal", evid: "evidencia a obtener", metrica: "métrica meta", duracion: "duración", recursos: "recursos" },
+      prog: "{a} de {b} campos de la planeación completos",
+      bDesc: "Descargar", fDocx: "Word (.docx)", fDocxS: "Para editar y guardar como versión", fPdf: "PDF", fPdfS: "Para compartir tal cual",
+      bCopiar: "Copiar todo", bCopiado: "Copiado", bLimpiar: "Limpiar",
+      cPregunta: "¿Borrar todo lo escrito?", cSi: "Sí, borrar", cNo: "Cancelar",
+      borrado: "Listo, la planeación quedó en blanco.", ok: "Listo, la descarga quedó guardada.",
+      eNoDocx: "No se pudo preparar el archivo de Word. Revisa tu conexión o descarga el PDF.",
+      eNoPdf: "No se pudo generar el PDF. Revisa tu conexión o usa Copiar todo.",
+      eCopiar: "Tu navegador no deja copiar automáticamente. Selecciona el texto y cópialo.",
+      docEtiqueta: "EXPERIMENTO DE DISCURSO", docTitulo: "Experimento de discurso", docAutor: "Autor", docVersion: "Versión",
+      docPlan: "Planeación", docPrompts: "Prompts", docSinPrompt: "Completa la planeación para generar los prompts.",
+      archivo: "discurso", vacio: "—",
+      lMetricaDoc: "Métrica meta", metricaDoc: "{x} de {y} entrevistados entregaron la evidencia"
+    },
+    en: {
+      locale: "en-US", aIdioma: "Language",
+      eyebrow: "Customer Discovery · Pitch experiment",
+      h1: 'Present your value proposition and <span class="hl">ask for a real signal</span>',
+      lead: "A pitch experiment tests your value proposition: you confirm the problem, present the proposition and ask for concrete evidence of interest. Define the plan and the tool builds the prompts for your interview script and for analyzing what you find.",
+      privacidad: "What you write is saved only in this browser. It doesn’t go anywhere and no one else sees it.",
+      s1n: "Step 1", s1: "Identify your initiative", s1sub: "These details head the document you will download.",
+      mNombre: "Initiative name", pNombre: "e.g. Insights for KAMs", mAutor: "Author or team", pAutor: "Person or team",
+      s2n: "Step 2", s2: "Plan the experiment", s2sub: "Define everything before interviewing, including the evidence you’ll ask for and the target metric: that’s how you’ll know whether the result validates your proposition.",
+      lObjetivo: "Experiment goal", objDef: "Validate the value proposition hypothesis",
+      lCliente: "Customer or user segment hypothesis", pCliente: "Who they are, specifically: where you would find them",
+      lProblema: "Problem hypothesis", pProblema: "What problem we believe they have, from their point of view",
+      lPropuesta: "Value proposition hypothesis", pPropuesta: "The opposite of the problem: what their situation looks like solved",
+      lEvid: "Evidence to obtain", evidPh: "Choose the evidence", pEvidOtro: "Which one?",
+      evids: { contacto: "Contact details", cotizacion: "Quote request", reserva: "Reservation", pago: "Payment", otro: "Other" },
+      lCanal: "Channel", canalPh: "Choose a channel",
+      canales: { presencial: "In person", llamada: "Phone call", videollamada: "Video call", whatsapp: "WhatsApp or chat", otro: "Other" },
+      pCanalOtro: "Which one?",
+      lTrato: "Interview tone", tu: "Informal", usted: "Formal",
+      lMetrica: "Target metric", de: "of", metricaTxt: "interviewees handed over the evidence", aX: "Interviewees who handed over the evidence", aY: "Total interviewees",
+      errMetrica: "The first number can’t be greater than the total number of interviewees.",
+      lDuracion: "Duration", pDuracion: "e.g. 2 weeks", lRecursos: "Resources", pRecursos: "e.g. script, contacts, Teams, notes template",
+      verEj: "See example", ejCaso: "Case: KAM at a pharmaceutical company",
+      usarEj: "Use this example", ejPregunta: "Replace what you wrote?", ejSi: "Yes, replace",
+      ejCargado: "Done, the example is loaded. Use Clear to start from scratch.",
+      s3n: "Step 3", s3: "Generate your prompts", s3sub: "Copy them and paste them into Copilot, ChatGPT or Claude.",
+      pEntT: "Interview script prompt", pEntD: "Use it before interviewing. It gives you a script tailored to your experiment.",
+      pAnaT: "Interview analysis prompt", pAnaD: "Use it after interviewing. Paste your notes at the end and it gives you learnings about the proposition, the resulting metric and the next step.",
+      gEnt: "Generate interview prompt", gAna: "Generate analysis prompt",
+      falta: "To generate it, complete: {c}.", copiarP: "Copy prompt", copiado: "Copied",
+      listoEnt: "Ready to paste.", listoAna: "Ready to paste. If your notes are very long, attach them as a file.",
+      viejo: "You changed the plan. Generate the prompt again.",
+      aPromptEnt: "Interview script prompt", aPromptAna: "Interview analysis prompt",
+      nombresReq: { objetivo: "goal", cliente: "customer or user hypothesis", problema: "problem hypothesis", propuesta: "value proposition hypothesis", canal: "channel", evid: "evidence to obtain", metrica: "target metric", duracion: "duration", recursos: "resources" },
+      prog: "{a} of {b} plan fields complete",
+      bDesc: "Download", fDocx: "Word (.docx)", fDocxS: "To edit and keep as a version", fPdf: "PDF", fPdfS: "To share as is",
+      bCopiar: "Copy all", bCopiado: "Copied", bLimpiar: "Clear",
+      cPregunta: "Delete everything you wrote?", cSi: "Yes, delete", cNo: "Cancel",
+      borrado: "Done, the plan is blank again.", ok: "Done, your download was saved.",
+      eNoDocx: "The Word file couldn’t be prepared. Check your connection or download the PDF.",
+      eNoPdf: "The PDF couldn’t be generated. Check your connection or use Copy all.",
+      eCopiar: "Your browser won’t copy automatically. Select the text and copy it.",
+      docEtiqueta: "PITCH EXPERIMENT", docTitulo: "Pitch experiment", docAutor: "Author", docVersion: "Version",
+      docPlan: "Plan", docPrompts: "Prompts", docSinPrompt: "Complete the plan to generate the prompts.",
+      archivo: "pitch", vacio: "—",
+      lMetricaDoc: "Target metric", metricaDoc: "{x} of {y} interviewees handed over the evidence"
+    }
+  };
+
+  var EJ = {
+    es: {
+      objetivo: "Validar la hipótesis de propuesta de valor",
+      cliente: "Kams de laboratorios farmacéuticos con 8 o más cuentas institucionales que también manejan la relación con aseguradoras o instituciones públicas",
+      problema: "Se enteran tarde de licitaciones, pagos pendientes y cambios en sus cuentas, y les toma de 4 a 6 horas por semana buscar información dispersa",
+      propuesta: "Cada lunes saben, en 5 minutos, qué cambió en sus cuentas y qué hacer al respecto",
+      evidOtro: "", duracion: "2 semanas", recursos: "Prototipo",
+      nombre: "Insights para Kams", autor: "Ejemplo del taller"
+    },
+    en: {
+      objetivo: "Validate the value proposition hypothesis",
+      cliente: "KAMs at pharmaceutical companies with 8 or more institutional accounts who also manage the relationship with insurers or public institutions",
+      problema: "They learn too late about tenders, pending payments and changes in their accounts, and it takes them 4 to 6 hours a week to search scattered information",
+      propuesta: "Every Monday they know, in 5 minutes, what changed in their accounts and what to do about it",
+      evidOtro: "", duracion: "2 weeks", recursos: "Prototype",
+      nombre: "Insights for KAMs", autor: "Workshop example"
+    },
+    canal: "videollamada", trato: "usted", evid: "contacto", x: 6, y: 10
+  };
+
+  /* ---------- estado ---------- */
+  function nuevo(lang) {
+    lang = lang || "es";
+    return { lang: lang, nombre: "", autor: "", objetivo: T[lang].objDef, cliente: "", problema: "", propuesta: "", canal: "", canalOtro: "", evid: "", evidOtro: "", trato: "usted",
+      x: "", y: "", duracion: "", recursos: "", pEnt: "", pAna: "" };
+  }
+  var S = nuevo();
+  try {
+    var g = JSON.parse(localStorage.getItem(CLAVE) || "null");
+    if (g && typeof g === "object") {
+      var base = nuevo(g.lang === "en" ? "en" : "es");
+      Object.keys(base).forEach(function (k) { if (g[k] != null) base[k] = typeof base[k] === "number" ? Number(g[k]) : String(g[k]); });
+      if (CANALES.indexOf(base.canal) < 0) base.canal = "";
+      if (EVIDS.indexOf(base.evid) < 0) base.evid = "";
+      if (base.trato !== "tu") base.trato = "usted";
+      S = base;
+    }
+  } catch (e) {}
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* nombre y autor compartidos entre herramientas */
+  var CLAVE_INI = "cdw-iniciativa";
+  function leerIni() { try { var i = JSON.parse(localStorage.getItem(CLAVE_INI) || "null"); if (i && typeof i === "object") { S.nombre = String(i.nombre || ""); S.autor = String(i.autor || ""); return true; } } catch (e) {} return false; }
+  function guardarIni() { try { localStorage.setItem(CLAVE_INI, JSON.stringify({ nombre: S.nombre, autor: S.autor })); } catch (e) {} }
+  if (!leerIni() && (S.nombre || S.autor)) guardarIni();
+  window.addEventListener("storage", function (e) {
+    if (e.key !== CLAVE_INI) return;
+    leerIni(); $("m-nombre").value = S.nombre; $("m-autor").value = S.autor;
+  });
+  function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(S)); } catch (e) {} guardarIni(); }
+
+  function t(k) { return T[S.lang][k]; }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function lleno(v) { return !!(v != null && String(v).trim()); }
+  function v(k) { return String(S[k] || "").trim(); }
+
+  /* ---------- validación ---------- */
+  function metricaOk() {
+    var x = parseInt(S.x, 10), y = parseInt(S.y, 10);
+    return !isNaN(x) && !isNaN(y) && x >= 0 && y >= 1 && x <= y;
+  }
+  function metricaError() {
+    var x = parseInt(S.x, 10), y = parseInt(S.y, 10);
+    return !isNaN(x) && !isNaN(y) && x > y;
+  }
+  function campoOk(k) {
+    if (k === "canal") return lleno(S.canal) && (S.canal !== "otro" || lleno(S.canalOtro));
+    if (k === "evid") return lleno(S.evid) && (S.evid !== "otro" || lleno(S.evidOtro));
+    if (k === "metrica") return metricaOk();
+    return lleno(S[k]);
+  }
+  function faltantes() { return REQ.filter(function (k) { return !campoOk(k); }); }
+  function canalTxt() { return S.canal === "otro" ? v("canalOtro") : (S.canal ? t("canales")[S.canal] : ""); }
+
+  function evidTxt() { return S.evid === "otro" ? v("evidOtro") : (S.evid ? t("evids")[S.evid] : ""); }
+
+  /* ---------- prompts ---------- */
+  function promptEntrevista() {
+    var es = S.lang === "es", wa = S.canal === "whatsapp", L = [];
+    if (es) {
+      L.push("Actúa como experto en customer discovery y en entrevistas para validar propuestas de valor.");
+      L.push("");
+      L.push("Contexto: estoy preparando un experimento de discurso. En cada entrevista confirmo brevemente que la persona vive el problema, le presento la propuesta de valor y le pido una evidencia concreta de interés. Lo que cuenta es lo que la persona hace (entregar la evidencia), no lo que dice que haría.");
+      L.push("");
+      L.push("Datos del experimento:");
+      L.push("- Objetivo: " + v("objetivo"));
+      L.push("- Hipótesis de cliente o usuario: " + v("cliente"));
+      L.push("- Hipótesis de problema: " + v("problema"));
+      L.push("- Hipótesis de propuesta de valor: " + v("propuesta"));
+      L.push("- Canal: " + canalTxt());
+      L.push("- Evidencia a pedir: " + evidTxt());
+      L.push("- Métrica meta: " + S.x + " de " + S.y + " entrevistados entregan la evidencia");
+      L.push("");
+      L.push("Tarea: escribe un guion de entrevista listo para usar, en español, tratando a la persona de " + (S.trato === "tu" ? "tú" : "usted") + ". " +
+        (wa ? "Como el canal es WhatsApp o chat, haz una versión corta de 6 a 8 mensajes, una pregunta por mensaje, y empieza con un mensaje de contacto que diga quién soy y cuánto tiempo tomará."
+            : "La conversación debe durar entre 15 y 20 minutos."));
+      L.push("");
+      L.push("Usa exactamente esta estructura:");
+      L.push("1. Encabezado: objetivo, hipótesis, canal, evidencia a pedir y duración estimada.");
+      L.push("2. Pregunta filtro: 1 o 2 preguntas que se respondan con hechos y confirmen que la persona pertenece al segmento. Incluye el criterio de pase: si no cumple, agradecer y terminar; esa entrevista no cuenta para la métrica.");
+      L.push("3. Preguntas sobre la persona: 2 o 3 preguntas sobre qué hace, hace cuánto y cómo la miden.");
+      L.push("4. Confirmación del problema: 3 o 4 preguntas sobre hechos pasados (la última vez que le pasó, cómo le afectó, qué ha intentado). Si la persona no vive el problema, no presentar la propuesta: anotarlo y cerrar.");
+      L.push("5. Presentación de la propuesta: un texto de 2 o 3 frases, en el lenguaje de la persona, basado en la hipótesis de propuesta de valor. Sin detalles técnicos ni precio, salvo que la evidencia a pedir sea una cotización o un pago.");
+      L.push("6. Reacción, basada en lo que la persona contó: si esto resolvería lo que describió, qué le falta, qué haría si existiera mañana y quién más tendría que aprobarlo.");
+      L.push("7. Petición de la evidencia: una frase directa y concreta para pedir la evidencia, y qué responder si dice que sí, si duda o si dice que no. Indica cómo registrar si la entregó.");
+      L.push("8. Cierre: agradecer y pedir contactos de otras personas del mismo segmento.");
+      L.push("9. Notas para el entrevistador: 4 o 5 recordatorios breves (no vender ni insistir, guardar silencio después de presentar la propuesta, anotar frases textuales, distinguir la cortesía del compromiso) y el criterio de éxito: la entrevista cuenta solo si la persona entregó la evidencia.");
+      L.push("");
+      L.push("Reglas: antes de la parte 5 no se menciona ninguna solución; las preguntas de las partes 3 y 4 son abiertas y sobre hechos, nada hipotético. Entrega solo el guion, sin explicaciones adicionales.");
+    } else {
+      L.push("Act as an expert in customer discovery and in interviews to validate value propositions.");
+      L.push("");
+      L.push("Context: I’m preparing a pitch experiment. In each interview I briefly confirm the person experiences the problem, present the value proposition and ask for concrete evidence of interest. What counts is what the person does (hand over the evidence), not what they say they would do.");
+      L.push("");
+      L.push("Experiment details:");
+      L.push("- Goal: " + v("objetivo"));
+      L.push("- Customer or user hypothesis: " + v("cliente"));
+      L.push("- Problem hypothesis: " + v("problema"));
+      L.push("- Value proposition hypothesis: " + v("propuesta"));
+      L.push("- Channel: " + canalTxt());
+      L.push("- Evidence to ask for: " + evidTxt());
+      L.push("- Target metric: " + S.x + " of " + S.y + " interviewees hand over the evidence");
+      L.push("");
+      L.push("Task: write a ready-to-use interview script in English, using a " + (S.trato === "tu" ? "friendly, informal" : "polite, formal") + " tone. " +
+        (wa ? "Since the channel is WhatsApp or chat, make a short version with 6 to 8 messages, one question per message, and start with a contact message saying who I am and how long it will take."
+            : "The conversation should last 15 to 20 minutes."));
+      L.push("");
+      L.push("Use exactly this structure:");
+      L.push("1. Header: goal, hypotheses, channel, evidence to ask for and estimated duration.");
+      L.push("2. Screening question: 1 or 2 questions answered with facts that confirm the person belongs to the segment. Include the pass criterion: if they don’t qualify, thank them and end; that interview doesn’t count toward the metric.");
+      L.push("3. Questions about the person: 2 or 3 questions about what they do, for how long and how they are measured.");
+      L.push("4. Problem confirmation: 3 or 4 questions about past facts (the last time it happened, how it affected them, what they’ve tried). If the person doesn’t experience the problem, don’t present the proposition: note it and close.");
+      L.push("5. Presenting the proposition: 2 or 3 sentences in the person’s language, based on the value proposition hypothesis. No technical details or price, unless the evidence to ask for is a quote or a payment.");
+      L.push("6. Reaction, based on what the person told me: whether this would solve what they described, what’s missing, what they’d do if it existed tomorrow and who else would need to approve it.");
+      L.push("7. Asking for the evidence: one direct, concrete sentence to ask for the evidence, and what to say if they say yes, hesitate or say no. Explain how to record whether they handed it over.");
+      L.push("8. Closing: thank them and ask for contacts of other people in the same segment.");
+      L.push("9. Notes for the interviewer: 4 or 5 brief reminders (don’t sell or push, stay silent after presenting the proposition, write down verbatim quotes, tell politeness apart from commitment) and the success criterion: the interview counts only if the person handed over the evidence.");
+      L.push("");
+      L.push("Rules: no solution is mentioned before part 5; questions in parts 3 and 4 are open and about facts, nothing hypothetical. Deliver only the script, with no extra explanations.");
+    }
+    return L.join("\n");
+  }
+
+  function promptAnalisis() {
+    var es = S.lang === "es", L = [];
+    if (es) {
+      L.push("Actúa como experto en customer discovery. Voy a pegarte las notas o transcripciones de las entrevistas de un experimento de discurso. En cada una se confirmó el problema, se presentó la propuesta de valor y se pidió una evidencia concreta. Analízalas contra las hipótesis y la métrica que definí antes de entrevistar.");
+      L.push("");
+      L.push("Datos del experimento:");
+      if (lleno(S.nombre)) L.push("- Iniciativa: " + v("nombre"));
+      L.push("- Objetivo: " + v("objetivo"));
+      L.push("- Hipótesis de cliente o usuario: " + v("cliente"));
+      L.push("- Hipótesis de problema: " + v("problema"));
+      L.push("- Hipótesis de propuesta de valor: " + v("propuesta"));
+      L.push("- Canal: " + canalTxt());
+      L.push("- Duración planeada: " + v("duracion"));
+      L.push("- Evidencia pedida: " + evidTxt());
+      L.push("- Métrica meta: " + S.x + " de " + S.y + " entrevistados entregan la evidencia");
+      L.push("");
+      L.push("Instrucciones:");
+      L.push("1. Revisa cada entrevista por separado. ¿La persona pertenece al segmento? Las que no pertenecen no cuentan para la métrica. ¿Confirmó el problema? Responde Sí, No o Parcial. ¿Entregó la evidencia? Responde Sí o No: solo es Sí si la entregó de verdad, no si dijo que lo haría después o que le parecía interesante.");
+      L.push("2. Calcula la métrica resultante: X de Y entregaron la evidencia, donde Y son las entrevistas válidas, y compárala con la meta. Reporta también cuántas confirmaron el problema.");
+      L.push("3. Agrupa los aprendizajes en listas separadas: sobre la propuesta de valor (qué conectó, qué objeciones aparecieron, qué falta), sobre el problema y el cliente o usuario (si algo cambió respecto a las hipótesis) y sobre el canal. Solo es patrón lo que aparece en varias entrevistas; indica en cuántas (ej. 5/8). Las menciones únicas van como \"señales a explorar\".");
+      L.push("4. Distingue los hechos reportados de tus interpretaciones. No infles la evidencia.");
+      L.push("");
+      L.push("Formato de respuesta:");
+      L.push("1. Resumen: métrica resultante (X de Y; cumple o no la meta), veredicto y hallazgo principal en una frase.");
+      L.push("2. Tabla con una fila por entrevista: #, perfil, ¿pertenece al segmento?, ¿confirmó el problema?, ¿entregó la evidencia?, reacción clave en una línea.");
+      L.push("3. Aprendizajes sobre la propuesta de valor, con conteo, incluidas las objeciones.");
+      L.push("4. Aprendizajes sobre el problema y el cliente o usuario, con conteo.");
+      L.push("5. Aprendizajes sobre el canal: qué funcionó y qué no para conseguir y hacer las entrevistas.");
+      L.push("6. Las 3 frases textuales más fuertes, indicando de qué entrevista son.");
+      L.push("7. Veredicto y siguiente paso. Elige uno: complementar el experimento (si hay poca información o no se puede concluir; di qué faltó y cuántas entrevistas más se necesitan), iterar la propuesta y hacer un nuevo discurso (si el problema se confirma pero pocos entregan la evidencia; di qué cambiar en la propuesta), volver a exploración (si la mayoría no confirmó el problema) o pasar a un experimento de simulación (si se cumple la meta).");
+      L.push("");
+      L.push("Entrevistas:");
+      L.push("[Pega aquí tus notas o transcripciones. Separa cada entrevista con un título: Entrevista 1, Entrevista 2…]");
+    } else {
+      L.push("Act as a customer discovery expert. I’m going to paste the notes or transcripts from the interviews of a pitch experiment. In each one the problem was confirmed, the value proposition was presented and concrete evidence was requested. Analyze them against the hypotheses and the metric I defined before interviewing.");
+      L.push("");
+      L.push("Experiment details:");
+      if (lleno(S.nombre)) L.push("- Initiative: " + v("nombre"));
+      L.push("- Goal: " + v("objetivo"));
+      L.push("- Customer or user hypothesis: " + v("cliente"));
+      L.push("- Problem hypothesis: " + v("problema"));
+      L.push("- Value proposition hypothesis: " + v("propuesta"));
+      L.push("- Channel: " + canalTxt());
+      L.push("- Planned duration: " + v("duracion"));
+      L.push("- Evidence requested: " + evidTxt());
+      L.push("- Target metric: " + S.x + " of " + S.y + " interviewees hand over the evidence");
+      L.push("");
+      L.push("Instructions:");
+      L.push("1. Review each interview separately. Does the person belong to the segment? Those who don’t aren’t counted toward the metric. Did they confirm the problem? Answer Yes, No or Partial. Did they hand over the evidence? Answer Yes or No: it’s Yes only if they actually handed it over, not if they said they would later or found it interesting.");
+      L.push("2. Calculate the resulting metric: X of Y handed over the evidence, where Y is the valid interviews, and compare it with the target. Also report how many confirmed the problem.");
+      L.push("3. Group the learnings into separate lists: about the value proposition (what resonated, which objections came up, what’s missing), about the problem and the customer or user (whether anything changed from the hypotheses) and about the channel. Only something that shows up in several interviews is a pattern; say in how many (e.g. 5/8). One-off mentions go under \"signals to explore\".");
+      L.push("4. Separate reported facts from your interpretations. Don’t inflate the evidence.");
+      L.push("");
+      L.push("Response format:");
+      L.push("1. Summary: resulting metric (X of Y; meets the target or not), verdict and main finding in one sentence.");
+      L.push("2. Table with one row per interview: #, profile, belongs to the segment?, confirmed the problem?, handed over the evidence?, key reaction in one line.");
+      L.push("3. Learnings about the value proposition, with counts, including objections.");
+      L.push("4. Learnings about the problem and the customer or user, with counts.");
+      L.push("5. Learnings about the channel: what worked and what didn’t to get and run the interviews.");
+      L.push("6. The 3 strongest verbatim quotes, saying which interview each comes from.");
+      L.push("7. Verdict and next step. Choose one: complement the experiment (if there’s little information or no conclusion is possible; say what was missing and how many more interviews are needed), iterate the proposition and run a new pitch (if the problem is confirmed but few hand over the evidence; say what to change in the proposition), go back to exploration (if most didn’t confirm the problem) or move to a concierge experiment (if the target is met).");
+      L.push("");
+      L.push("Interviews:");
+      L.push("[Paste your notes or transcripts here. Separate each interview with a title: Interview 1, Interview 2…]");
+    }
+    return L.join("\n");
+  }
+
+  /* ---------- UI de prompts ---------- */
+  function estadoPrompt(tipo) {
+    var gen = tipo === "ent" ? promptEntrevista : promptAnalisis, guardado = tipo === "ent" ? S.pEnt : S.pAna;
+    var f = faltantes(), out = $("o-" + tipo), info = $("i-" + tipo);
+    $("g-" + tipo).disabled = f.length > 0;
+    $("falta-" + tipo).textContent = f.length ? t("falta").replace("{c}", f.map(function (k) { return t("nombresReq")[k]; }).join(", ")) : "";
+    out.hidden = !guardado;
+    if (!guardado) return;
+    $("t-" + tipo).value = guardado;
+    var viejo = !f.length ? gen() !== guardado : true;
+    out.classList.toggle("viejo", viejo);
+    info.textContent = viejo ? t("viejo") : (tipo === "ent" ? t("listoEnt") : t("listoAna"));
+    info.classList.toggle("alerta", viejo);
+  }
+  function estado() {
+    var a = REQ.length - faltantes().length;
+    $("prog").textContent = t("prog").replace("{a}", a).replace("{b}", REQ.length);
+    $("err-metrica").textContent = metricaError() ? t("errMetrica") : "";
+    $("f-canalOtro").hidden = S.canal !== "otro";
+    $("f-evidOtro").hidden = S.evid !== "otro";
+    estadoPrompt("ent"); estadoPrompt("ana");
+  }
+  function generar(tipo) {
+    if (faltantes().length) return;
+    if (tipo === "ent") S.pEnt = promptEntrevista(); else S.pAna = promptAnalisis();
+    guardar(); estado();
+    $("o-" + tipo).scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  $("g-ent").addEventListener("click", function () { generar("ent"); });
+  $("g-ana").addEventListener("click", function () { generar("ana"); });
+
+  function copiar(txt, ok, sel) {
+    function fallback() {
+      var ta = document.createElement("textarea"); ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select();
+      var r = false; try { r = document.execCommand("copy"); } catch (e) {}
+      ta.remove(); if (r) ok(); else { avisar(t("eCopiar")); if (sel) { sel.focus(); sel.select(); } }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, fallback); else fallback();
+  }
+  ["ent", "ana"].forEach(function (tipo) {
+    var b = $("c-" + tipo + "-b");
+    b.addEventListener("click", function () {
+      copiar($("t-" + tipo).value, function () { b.textContent = t("copiado"); setTimeout(function () { b.textContent = t("copiarP"); }, 1800); }, $("t-" + tipo));
+    });
+  });
+
+  /* ---------- formulario ---------- */
+  document.querySelectorAll("[data-f]").forEach(function (el) {
+    el.addEventListener("input", function () { S[el.getAttribute("data-f")] = el.value; guardar(); estado(); });
+  });
+  $("f-canal").addEventListener("change", function (e) {
+    S.canal = e.target.value; guardar(); estado();
+    if (S.canal === "otro") $("f-canalOtro").focus();
+  });
+  $("f-evid").addEventListener("change", function (e) {
+    S.evid = e.target.value; guardar(); estado();
+    if (S.evid === "otro") $("f-evidOtro").focus();
+  });
+  ["x", "y"].forEach(function (k) {
+    $("f-" + k).addEventListener("input", function (e) { S[k] = e.target.value.replace(/[^0-9]/g, "").slice(0, 3); guardar(); estado(); });
+  });
+  function pintarTrato() { $("tr-tu").setAttribute("aria-pressed", S.trato === "tu"); $("tr-usted").setAttribute("aria-pressed", S.trato === "usted"); }
+  $("tr-tu").addEventListener("click", function () { S.trato = "tu"; pintarTrato(); guardar(); estado(); });
+  $("tr-usted").addEventListener("click", function () { S.trato = "usted"; pintarTrato(); guardar(); estado(); });
+  ["nombre", "autor"].forEach(function (c) { $("m-" + c).addEventListener("input", function (e) { S[c] = e.target.value; guardar(); estado(); }); });
+
+  /* ---------- ejemplo ---------- */
+  function renderEjemplo() {
+    var e = EJ[S.lang], filas = [
+      [t("lObjetivo"), e.objetivo], [t("lCliente"), e.cliente], [t("lProblema"), e.problema], [t("lPropuesta"), e.propuesta],
+      [t("lCanal"), t("canales")[EJ.canal]], [t("lTrato"), t(EJ.trato)], [t("lEvid"), t("evids")[EJ.evid]],
+      [t("lMetrica"), t("metricaDoc").replace("{x}", EJ.x).replace("{y}", EJ.y)],
+      [t("lDuracion"), e.duracion], [t("lRecursos"), e.recursos]
+    ];
+    $("ej-dl").innerHTML = filas.map(function (f) { return "<dt>" + esc(f[0]) + "</dt><dd>" + esc(f[1]) + "</dd>"; }).join("");
+  }
+  function hayDatos() {
+    return ["cliente", "problema", "propuesta", "canal", "canalOtro", "evid", "evidOtro", "x", "y", "duracion", "recursos"].some(function (k) { return lleno(S[k]); }) ||
+      (lleno(S.objetivo) && S.objetivo !== T.es.objDef && S.objetivo !== T.en.objDef);
+  }
+  function cargarEjemplo() {
+    var e = EJ[S.lang], nom = S.nombre, aut = S.autor, lang = S.lang;
+    S = nuevo(lang);
+    S.nombre = lleno(nom) ? nom : e.nombre; S.autor = lleno(aut) ? aut : e.autor;
+    ["objetivo", "cliente", "problema", "propuesta", "duracion", "recursos"].forEach(function (k) { S[k] = e[k]; });
+    S.evid = EJ.evid; S.canal = EJ.canal; S.trato = EJ.trato; S.x = String(EJ.x); S.y = String(EJ.y);
+    guardar(); todo(); avisar(t("ejCargado"));
+  }
+  $("b-ej").addEventListener("click", function () { if (!hayDatos()) { cargarEjemplo(); return; } $("b-ej").hidden = true; $("ej-conf").hidden = false; $("b-ej-no").focus(); });
+  function cerrarEjConf() { $("ej-conf").hidden = true; $("b-ej").hidden = false; }
+  $("b-ej-si").addEventListener("click", function () { cerrarEjConf(); cargarEjemplo(); });
+  $("b-ej-no").addEventListener("click", function () { cerrarEjConf(); $("b-ej").focus(); });
+
+  /* ---------- textos ---------- */
+  function textos() {
+    document.documentElement.lang = S.lang;
+    $("l-es").setAttribute("aria-pressed", S.lang === "es"); $("l-en").setAttribute("aria-pressed", S.lang === "en");
+    $("idioma").setAttribute("aria-label", t("aIdioma"));
+    document.querySelectorAll("[data-t]").forEach(function (el) { var x = t(el.getAttribute("data-t")); if (typeof x === "string") el.textContent = x; });
+    document.querySelectorAll("[data-ta]").forEach(function (el) { el.setAttribute("aria-label", t(el.getAttribute("data-ta"))); });
+    $("h1").innerHTML = t("h1");
+    var ph = { "m-nombre": "pNombre", "m-autor": "pAutor", "f-cliente": "pCliente", "f-problema": "pProblema", "f-canalOtro": "pCanalOtro", "f-propuesta": "pPropuesta", "f-evidOtro": "pEvidOtro", "f-duracion": "pDuracion", "f-recursos": "pRecursos" };
+    Object.keys(ph).forEach(function (id) { $(id).placeholder = t(ph[id]); });
+    $("f-objetivo").placeholder = t("objDef");
+    $("f-canal").innerHTML = '<option value="">' + esc(t("canalPh")) + "</option>" + CANALES.map(function (c) { return '<option value="' + c + '">' + esc(t("canales")[c]) + "</option>"; }).join("");
+    $("f-evid").innerHTML = '<option value="">' + esc(t("evidPh")) + "</option>" + EVIDS.map(function (c) { return '<option value="' + c + '">' + esc(t("evids")[c]) + "</option>"; }).join("");
+    $("tr-tu").textContent = t("tu"); $("tr-usted").textContent = t("usted");
+  }
+  function valores() {
+    $("m-nombre").value = S.nombre; $("m-autor").value = S.autor;
+    document.querySelectorAll("[data-f]").forEach(function (el) { el.value = S[el.getAttribute("data-f")] || ""; });
+    $("f-canal").value = S.canal; $("f-evid").value = S.evid; $("f-x").value = S.x; $("f-y").value = S.y;
+    pintarTrato();
+  }
+  function todo() { textos(); valores(); renderEjemplo(); estado(); }
+  function cambiarIdioma(l) {
+    if (S.lang === l) return;
+    if (S.objetivo === T[S.lang].objDef || !lleno(S.objetivo)) S.objetivo = T[l].objDef;
+    S.lang = l;
+    if (!faltantes().length) { if (S.pEnt) S.pEnt = promptEntrevista(); if (S.pAna) S.pAna = promptAnalisis(); }
+    guardar(); todo();
+  }
+  $("l-es").addEventListener("click", function () { cambiarIdioma("es"); });
+  $("l-en").addEventListener("click", function () { cambiarIdioma("en"); });
+
+  var avisoT;
+  function avisar(m) { var a = $("aviso"); a.textContent = m; clearTimeout(avisoT); avisoT = setTimeout(function () { a.textContent = ""; }, 4500); }
+
+  /* ---------- exportación ---------- */
+  function ahora() { return new Date().toLocaleString(t("locale"), { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }); }
+  function datos() {
+    var meta = [];
+    if (lleno(S.autor)) meta.push(t("docAutor") + ": " + v("autor"));
+    meta.push(t("docVersion") + ": " + ahora());
+    var vac = t("vacio");
+    var plan = [
+      [t("lObjetivo"), v("objetivo") || vac], [t("lCliente"), v("cliente") || vac], [t("lProblema"), v("problema") || vac],
+      [t("lPropuesta"), v("propuesta") || vac], [t("lCanal"), canalTxt() || vac], [t("lTrato"), t(S.trato)],
+      [t("lEvid"), evidTxt() || vac], [t("lMetricaDoc"), metricaOk() ? t("metricaDoc").replace("{x}", S.x).replace("{y}", S.y) : vac],
+      [t("lDuracion"), v("duracion") || vac], [t("lRecursos"), v("recursos") || vac]
+    ];
+    var completo = !faltantes().length;
+    return { titulo: lleno(S.nombre) ? v("nombre") : t("docTitulo"), meta: meta, plan: plan, completo: completo,
+      prompts: completo ? [[t("pEntT"), promptEntrevista()], [t("pAnaT"), promptAnalisis()]] : [] };
+  }
+  function textoPlano() {
+    var d = datos(), o = t("docEtiqueta") + "\n" + d.titulo + "\n" + d.meta.join(" · ") + "\n\n";
+    o += t("docPlan") + "\n" + d.plan.map(function (p) { return "- " + p[0] + ": " + p[1]; }).join("\n") + "\n\n";
+    if (d.completo) d.prompts.forEach(function (p) { o += "=== " + p[0] + " ===\n" + p[1] + "\n\n"; });
+    else o += t("docSinPrompt") + "\n\n";
+    return o + "Juan Carlos Franco Zafra · " + LINKEDIN + "\n";
+  }
+  function nombreArchivo(ext) {
+    var d = new Date(), z = function (n) { return String(n).padStart(2, "0"); };
+    var base = (lleno(S.nombre) ? S.nombre + "-" + t("archivo") : t("archivo")).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || t("archivo");
+    return base + "-" + d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + "-" + z(d.getHours()) + z(d.getMinutes()) + "." + ext;
+  }
+  function bajar(blob, nombre) {
+    var url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = nombre; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1500);
+  }
+
+  function pdfLimpio(s) { return String(s).replace(/→/g, "->").replace(/[‘’]/g, "'").replace(/[“”«»]/g, '"').replace(/[–—]/g, "-").replace(/…/g, "..."); }
+  function pdfBlob() {
+    var JS = window.jspdf && window.jspdf.jsPDF; if (!JS) throw new Error("jspdf");
+    var d = datos(), doc = new JS({ unit: "pt", format: "letter" });
+    var M = 56, W = 612 - M * 2, y = 56, BOT = 740;
+    var NEGRO = [15, 20, 32], TXT = [57, 65, 79], GRIS = [92, 102, 117], TEAL = [15, 118, 110];
+    function color(c) { doc.setTextColor(c[0], c[1], c[2]); }
+    function linea(txt, size, peso, c, x, lh, ancho, fuente) {
+      doc.setFont(fuente || "helvetica", peso); doc.setFontSize(size); color(c);
+      doc.splitTextToSize(pdfLimpio(txt), ancho || (W - (x || 0))).forEach(function (l) { if (y + size > BOT) { doc.addPage(); y = 56; } doc.text(l, M + (x || 0), y + size * 0.8); y += size * (lh || 1.45); });
+    }
+    linea(t("docEtiqueta"), 8, "bold", TEAL, 0, 1.3); y += 3;
+    linea(d.titulo, 19, "bold", NEGRO, 0, 1.2); y += 2;
+    linea(d.meta.join("   ·   "), 9, "normal", GRIS, 0, 1.3); y += 6;
+    doc.setDrawColor(15, 20, 32); doc.setLineWidth(1); doc.line(M, y, M + W, y); y += 18;
+    linea(t("docPlan").toUpperCase(), 8, "bold", TEAL, 0, 1.3); y += 6;
+    d.plan.forEach(function (p) {
+      if (y + 30 > BOT) { doc.addPage(); y = 56; }
+      var y0 = y;
+      linea(p[0], 9.5, "bold", NEGRO, 0, 1.35, 150);
+      var y1 = y; y = y0;
+      linea(p[1], 10, "normal", TXT, 165, 1.45, W - 165);
+      y = Math.max(y, y1) + 5;
+      doc.setDrawColor(227, 230, 235); doc.setLineWidth(0.6); doc.line(M, y, M + W, y); y += 9;
+    });
+    y += 10;
+    if (!d.completo) linea(t("docSinPrompt"), 10, "normal", GRIS, 0);
+    d.prompts.forEach(function (p) {
+      if (y + 60 > BOT) { doc.addPage(); y = 56; }
+      linea(p[0].toUpperCase(), 8, "bold", TEAL, 0, 1.3); y += 6;
+      p[1].split("\n").forEach(function (par) { if (!par.trim()) { y += 5; return; } linea(par, 8.5, "normal", TXT, 0, 1.4, W, "courier"); });
+      y += 16;
+    });
+    y += 6; linea("Juan Carlos Franco Zafra · " + LINKEDIN, 8.5, "normal", GRIS, 0, 1.35);
+    return doc.output("blob");
+  }
+
+  var DOCX_URL = "https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js", docxCarga = null;
+  function cargarDocx() {
+    if (window.docx) return Promise.resolve(window.docx);
+    if (!docxCarga) docxCarga = new Promise(function (ok, mal) {
+      var sc = document.createElement("script"); sc.src = DOCX_URL;
+      sc.onload = function () { window.docx ? ok(window.docx) : mal(); };
+      sc.onerror = function () { docxCarga = null; mal(); };
+      document.head.appendChild(sc);
+    });
+    return docxCarga;
+  }
+  async function docxBlob() {
+    var D = await cargarDocx(), d = datos(), ch = [];
+    function run(text, o) { return new D.TextRun(Object.assign({ text: text, font: "Calibri" }, o || {})); }
+    function par(runs, o) { return new D.Paragraph(Object.assign({ children: runs }, o || {})); }
+    function etiqueta(txt) { return par([run(txt.toUpperCase(), { bold: true, size: 16, color: "0F766E", characterSpacing: 20 })], { spacing: { before: 280, after: 100 } }); }
+    ch.push(par([run(t("docEtiqueta"), { bold: true, size: 16, color: "0F766E", characterSpacing: 20 })], { spacing: { after: 80 } }));
+    ch.push(par([run(d.titulo, { bold: true, size: 40, color: "0F1420" })], { spacing: { after: 80 } }));
+    ch.push(par([run(d.meta.join("   ·   "), { size: 18, color: "5C6675" })], { spacing: { after: 120 }, border: { bottom: { style: D.BorderStyle.SINGLE, size: 8, color: "0F1420", space: 8 } } }));
+    ch.push(etiqueta(t("docPlan")));
+    var borde = { style: D.BorderStyle.SINGLE, size: 4, color: "E3E6EB" }, bordes = { top: borde, bottom: borde, left: borde, right: borde };
+    function celda(txt, o, ancho, fondo) {
+      return new D.TableCell({ width: { size: ancho, type: D.WidthType.PERCENTAGE }, borders: bordes, shading: fondo ? { fill: fondo, type: D.ShadingType.CLEAR, color: "auto" } : undefined,
+        margins: { top: 80, bottom: 80, left: 120, right: 120 }, children: [par([run(txt, Object.assign({ size: 20 }, o || {}))])] });
+    }
+    ch.push(new D.Table({ width: { size: 100, type: D.WidthType.PERCENTAGE }, rows: d.plan.map(function (p) {
+      return new D.TableRow({ children: [celda(p[0], { bold: true }, 30, "F5F6F8"), celda(p[1], { color: "39414F" }, 70)] });
+    }) }));
+    ch.push(etiqueta(t("docPrompts")));
+    if (!d.completo) ch.push(par([run(t("docSinPrompt"), { size: 20, color: "5C6675" })]));
+    d.prompts.forEach(function (p) {
+      ch.push(par([run(p[0], { bold: true, size: 24, color: "0F1420" })], { spacing: { before: 200, after: 100 } }));
+      p[1].split("\n").forEach(function (l) {
+        ch.push(par([run(l, { font: "Consolas", size: 18, color: "39414F" })], { spacing: { after: 20 }, shading: { fill: "F5F6F8", type: D.ShadingType.CLEAR, color: "auto" } }));
+      });
+    });
+    ch.push(par([run("Juan Carlos Franco Zafra", { bold: true, size: 18, color: "0F1420" })], { spacing: { before: 480 }, border: { top: { style: D.BorderStyle.SINGLE, size: 4, color: "CCD2DB", space: 8 } } }));
+    ch.push(par([new D.ExternalHyperlink({ link: "https://www.linkedin.com/in/juancarlosfranco/", children: [run(LINKEDIN, { size: 18, color: "0F766E" })] })]));
+    var doc = new D.Document({ creator: "Juan Carlos Franco Zafra", title: d.titulo, styles: { default: { document: { run: { font: "Calibri" } } } },
+      sections: [{ properties: { page: { margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 } } }, children: ch }] });
+    return D.Packer.toBlob(doc);
+  }
+
+  /* ---------- barra ---------- */
+  var menu = $("menu"), bDesc = $("b-desc");
+  function abrirMenu(si) { menu.hidden = !si; bDesc.setAttribute("aria-expanded", si); if (si) menu.querySelector("button").focus(); }
+  bDesc.addEventListener("click", function () { abrirMenu(menu.hidden); });
+  document.addEventListener("click", function (e) { if (!menu.hidden && !e.target.closest(".dd")) abrirMenu(false); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !menu.hidden) { abrirMenu(false); bDesc.focus(); } });
+  menu.addEventListener("click", async function (e) {
+    var b = e.target.closest("[data-fmt]"); if (!b) return;
+    abrirMenu(false);
+    var fmt = b.getAttribute("data-fmt");
+    try { if (fmt === "pdf") bajar(pdfBlob(), nombreArchivo("pdf")); else bajar(await docxBlob(), nombreArchivo("docx")); avisar(t("ok")); }
+    catch (err) { avisar(fmt === "pdf" ? t("eNoPdf") : t("eNoDocx")); }
+  });
+  $("b-copiar").addEventListener("click", function () {
+    var b = $("b-copiar");
+    copiar(textoPlano(), function () { b.textContent = t("bCopiado"); setTimeout(function () { b.textContent = t("bCopiar"); }, 1800); });
+  });
+  $("b-limpiar").addEventListener("click", function () { $("acc").hidden = true; $("conf").hidden = false; $("b-no").focus(); });
+  $("b-no").addEventListener("click", function () { $("conf").hidden = true; $("acc").hidden = false; $("b-limpiar").focus(); });
+  $("b-si").addEventListener("click", function () {
+    var nom = S.nombre, aut = S.autor; S = nuevo(S.lang); S.nombre = nom; S.autor = aut; guardar(); todo();
+    $("conf").hidden = true; $("acc").hidden = false; avisar(t("borrado"));
+  });
+
+  window.__cdw = { promptEntrevista: promptEntrevista, promptAnalisis: promptAnalisis, textoPlano: textoPlano };
+  todo();
+})();
+</script>
+</body>
+</html>
